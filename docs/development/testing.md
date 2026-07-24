@@ -59,14 +59,14 @@ fixture. It does not test the UI or IndexedDB integration.
 
 ## CI coverage
 
-| Check | CI (`ci.yml`) | Weekly (`weekly.yml`) |
-| --- | --- | --- |
-| `pnpm lint` | yes | yes |
-| `pnpm test:unit` | yes | yes (as `test`) |
-| `pnpm build` | yes | yes |
-| `pnpm typecheck` | no | yes |
-| `pnpm test:e2e` | no | yes (with Playwright browsers) |
-| `pnpm check:docs` | yes | no |
+| Check | CI (`ci.yml`) |
+| --- | --- |
+| `pnpm lint` | yes |
+| `pnpm typecheck` | yes |
+| `pnpm test:unit` | yes |
+| `pnpm build` | yes |
+| `pnpm check:docs` | yes |
+| `pnpm test:e2e` | no — run locally before a release when relevant |
 
 See [`../operations/jobs/README.md`](../operations/jobs/README.md) for the full
 scheduled job catalog.

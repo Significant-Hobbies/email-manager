@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-07-20
+Last updated: 2026-07-25
 
 ## Why / What
 
@@ -52,6 +52,7 @@ Last updated: 2026-07-20
 
 ## Timeline
 
+- **2026-07-25:** Removed the redundant general weekly quality workflow. Typechecking now runs in the required push/PR CI job alongside lint, unit tests, build, and docs validation; Playwright remains a release-relevant local check. The privacy-safe Foundry evidence snapshot remains the only recurring GitHub Action.
 - **2026-07-20:** Completed the earlier triage de-scope: removed the unreachable queue/session implementation and stale action state, retained `#today` and `#triage` as compatibility aliases to Inbox, and aligned product, architecture, and landing documentation. Historical triage PRDs remain archived.
 - **2026-07-19:** Added privacy-safe Foundry evidence automation: durable sync failure recording (`InboxSyncMeta.lastError` with sanitized stage/class/timestamp, cleared on success), `classifySyncError()` helper, sync lifecycle unit tests (`src/lib/__tests__/inbox-sync.test.ts`), `pnpm foundry:evidence` script (`scripts/foundry-evidence.mjs`) that generates `foundry-evidence.json` with build/sync/auth invariants (no email content or tokens), and `foundry-evidence.yml` CI workflow that uploads the artifact on push + weekly. See `docs/operations/foundry-evidence.md`.
 - **2026-07-13:** Allowed Cloudflare Web Analytics in the production CSP so the canonical `mail.sassmaker.com` surface loads without blocked-script errors.
@@ -62,7 +63,7 @@ Last updated: 2026-07-20
 - **2026-06-20** — De-OpenNext migration: Next.js+OpenNext → Vite SPA + Hono worker on Cloudflare Workers; Astro landing overlaid to `dist/index.html`; D1 only server DB (Turso residue removed).
 - **2026-06-20** — Shipped PRD batch (2026-06-12): weekly digest, triage action queue, Gmail filter recipe studio.
 - **2026-06-12** — PRD batch defined: weekly digest, triage queues, filter recipe studio.
-- **Ongoing** — CI (lint + build) runs on push to `main`; deploys are manual (`pnpm deploy`, or `deploy.yml` via workflow_dispatch); weekly workflow full checks Mondays 09:00 UTC.
+- **Ongoing** — CI (lint + typecheck + unit tests + build + docs validation) runs on push/PR to `main`; deploys are manual (`pnpm deploy`, or `deploy.yml` via workflow_dispatch). The only scheduled workflow is the privacy-safe Foundry evidence snapshot.
 
 ## Products
 
@@ -168,7 +169,7 @@ Last updated: 2026-07-20
 - Vitest unit (`pnpm test`): digest builder, filter builder, inbox sync, formatting, subscription senders, and sent-reply state (`src/lib/__tests__/`).
 - Playwright: landing hero/features/CTA, no horizontal scroll, CTA touch target ≥44px (desktop + mobile).
 - `pnpm digest:verify` golden-file check for digest builder.
-- CI (`ci.yml`): lint + build only; weekly workflow adds typecheck + e2e.
+- CI (`ci.yml`): lint + typecheck + unit tests + build + docs validation. Playwright is run locally before releases when relevant.
 
 ## Todo / Planned / Deferred / Blocked
 
@@ -194,4 +195,4 @@ Last updated: 2026-07-20
 
 - D1 bindings resolve only under `wrangler dev` / deployed worker — use `pnpm dev` or `pnpm dev:api` for `/api/*`.
 - Signed-in e2e flows require manual OAuth (unit tests cover lib logic only).
-- `ci.yml` does not run e2e (weekly workflow does).
+- Signed-in Playwright coverage remains release/manual-only because it requires OAuth.
