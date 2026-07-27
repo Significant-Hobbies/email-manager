@@ -1,7 +1,7 @@
 'use client';
 
+import { createAuthClient } from 'better-auth/client';
 import { oneTapClient } from 'better-auth/client/plugins';
-import { createAuthClient } from 'better-auth/react';
 
 export type Session = {
   user?: { id: string; email: string; name?: string; image?: string };
