@@ -13,7 +13,7 @@ import Layout from '@/layouts/Layout.astro';
 
 const TITLE = 'Kinetic — Semantic Gmail search that runs in your browser';
 const DESCRIPTION =
-  'Gmail inbox workspace with local-first semantic search. Your emails and embeddings stay in your browser. Read-only Gmail scope, zero server storage.';
+  'Gmail inbox workspace with local-first semantic search. Your emails and embeddings stay in your browser. Read-only Gmail scope, zero server-side mailbox storage.';
 ---
 
 <Layout title={TITLE} description={DESCRIPTION}>
@@ -50,7 +50,7 @@ const DESCRIPTION =
       </p>
       <div class="trust-row" aria-label="Trust signals">
         <span class="trust-chip">Read-only Gmail scope</span>
-        <span class="trust-chip">0 bytes on our servers</span>
+        <span class="trust-chip">0 mailbox bytes stored</span>
         <span class="trust-chip">IndexedDB + ONNX in-browser</span>
       </div>
       <div class="cta-row">
@@ -177,11 +177,12 @@ const DESCRIPTION =
     </section>
 
     <section class="closing">
-      <h2>The only inbox tool that can&rsquo;t leak your email.</h2>
+      <h2>Your inbox stays yours.</h2>
       <p>
-        We physically cannot read your messages. Embeddings, search
-        index, and message bodies live in your browser&rsquo;s
-        IndexedDB. The server only proxies live Gmail calls.
+        Kinetic does not retain your messages. Embeddings, the search
+        index, and cached message bodies live in your browser&rsquo;s
+        IndexedDB. The server only proxies live Gmail calls and maintains
+        the authentication records required for your read-only connection.
       </p>
       <a class="btn btn-primary" href="/app">Connect Gmail and search</a>
     </section>
