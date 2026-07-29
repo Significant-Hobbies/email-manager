@@ -1,0 +1,66 @@
+{
+  "$schema": "fleet.design-review.v1",
+  "version": 1,
+  "project": "email-manager",
+  "target": "Email Manager changelog",
+  "mode": "preserve",
+  "register": "product",
+  "context": {
+    "product": "PRODUCT.md",
+    "design": "DESIGN.md"
+  },
+  "direction": {
+    "references": [],
+    "probes": [],
+    "selected": "existing-design",
+    "approval": "not-required",
+    "before": ".fleet/evidence/changelog/before-1440.png"
+  },
+  "evidence": {
+    "screenshots": [
+      {
+        "width": 390,
+        "path": ".fleet/evidence/changelog/after-390.png"
+      },
+      {
+        "width": 768,
+        "path": ".fleet/evidence/changelog/after-768.png"
+      },
+      {
+        "width": 1440,
+        "path": ".fleet/evidence/changelog/after-1440.png"
+      }
+    ],
+    "projectCheck": {
+      "command": "pnpm build:landing",
+      "status": "pass"
+    },
+    "critique": {
+      "score": 35,
+      "maximum": 40
+    },
+    "audit": {
+      "score": 19,
+      "maximum": 20
+    },
+    "unresolved": {
+      "p0": 0,
+      "p1": 0
+    },
+    "detector": {
+      "posture": "advisory",
+      "findings": []
+    },
+    "browserReview": {
+      "tool": "Playwright",
+      "viewports": [390, 768, 1440],
+      "horizontalOverflow": false,
+      "consoleErrors": 0,
+      "note": "The changelog was visually inspected at all required widths. Navigation wraps without clipping, entries remain readable, and resource links retain usable touch targets."
+    }
+  },
+  "ownerFeedback": {
+    "decision": "delegated",
+    "note": "Owner explicitly delegated agents to build first-party changelogs across all projects."
+  }
+}

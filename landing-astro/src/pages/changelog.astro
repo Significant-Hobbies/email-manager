@@ -1,0 +1,180 @@
+---
+import Layout from '@/layouts/Layout.astro';
+
+const TITLE = 'Kinetic changelog — What changed';
+const DESCRIPTION =
+  'Verified updates to Kinetic, the local-first Gmail workspace with in-browser semantic search.';
+
+const entries = [
+  {
+    date: 'July 25, 2026',
+    title: 'A tighter release gate',
+    body: 'Typechecking now runs with lint, unit tests, the production build, and documentation validation on every push and pull request. Browser checks remain part of release verification.',
+    tags: ['Quality', 'Operations'],
+  },
+  {
+    date: 'July 20, 2026',
+    title: 'Inbox navigation simplified',
+    body: 'The retired triage queue and session implementation were removed. Existing #today and #triage bookmarks continue to open Inbox, so old links still work without preserving an unreachable workflow.',
+    tags: ['Inbox', 'Cleanup'],
+  },
+  {
+    date: 'July 19, 2026',
+    title: 'Privacy-safe sync evidence',
+    body: 'Kinetic now records sanitized sync failure stage, class, and time without storing message content or tokens. A repeatable evidence command verifies build, authentication, and sync invariants.',
+    tags: ['Privacy', 'Reliability'],
+  },
+  {
+    date: 'June 20, 2026',
+    title: 'A smaller Cloudflare runtime',
+    body: 'The app moved from Next.js and OpenNext to a Vite SPA with a Hono Worker. The static Astro landing now serves the public first visit while the inbox remains a client-side workspace.',
+    tags: ['Architecture', 'Performance'],
+  },
+];
+
+const sourceUrl = 'https://github.com/sass-maker/email-manager';
+const roadmapUrl = `${sourceUrl}/issues`;
+---
+
+<Layout title={TITLE} description={DESCRIPTION}>
+  <div class="page">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">K</span>
+        <span>Kinetic</span>
+      </a>
+      <div class="nav-links">
+        <a href="/faq">FAQ</a>
+        <a href="/changelog" aria-current="page">Changelog</a>
+        <a href="/app" class="nav-cta">Open app</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero changelog-hero">
+        <div class="hero-pill">
+          <span class="hero-pill-dot" aria-hidden="true"></span>
+          Product history, kept by us
+        </div>
+        <h1>What changed in Kinetic</h1>
+        <p class="lede">
+          A concise record of meaningful product, privacy, and reliability updates. Planned work
+          stays in GitHub Issues; this page only records verified changes.
+        </p>
+        <div class="resource-links" aria-label="Project resources">
+          <a href={roadmapUrl}>Roadmap</a>
+          <a href={sourceUrl}>Source</a>
+        </div>
+      </section>
+
+      <section class="changelog" aria-label="Kinetic releases">
+        {entries.map((entry) => (
+          <article class="changelog-entry">
+            <time>{entry.date}</time>
+            <div>
+              <h2>{entry.title}</h2>
+              <p>{entry.body}</p>
+              <ul aria-label="Update categories">
+                {entry.tags.map((tag) => <li>{tag}</li>)}
+              </ul>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-line">
+        Your mailbox and embeddings stay in your browser. The changelog stays here.
+      </p>
+      <div class="footer-links">
+        <a href="/">Home</a><span class="footer-sep">·</span>
+        <a href="/faq">FAQ</a><span class="footer-sep">·</span>
+        <a href={roadmapUrl}>Roadmap</a><span class="footer-sep">·</span>
+        <a href={sourceUrl}>Source</a>
+      </div>
+      <div class="footer-copy">&copy; MMXXVI &middot; Kinetic</div>
+    </footer>
+  </div>
+
+  <style>
+    .changelog-hero {
+      padding-bottom: 56px;
+    }
+    .resource-links {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .resource-links a {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      background: var(--bg-card);
+    }
+    .resource-links a:hover {
+      border-color: var(--accent);
+    }
+    .changelog {
+      width: min(860px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 0 0 96px;
+    }
+    .changelog-entry {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 32px;
+      padding: 32px 0;
+      border-top: 1px solid var(--border);
+    }
+    .changelog-entry time {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .changelog-entry h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.25rem, 3vw, 1.65rem);
+      letter-spacing: -0.02em;
+    }
+    .changelog-entry p {
+      max-width: 68ch;
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .changelog-entry ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .changelog-entry li {
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      .changelog {
+        width: min(100% - 36px, 860px);
+      }
+      .changelog-entry {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 26px 0;
+      }
+    }
+  </style>
+</Layout>

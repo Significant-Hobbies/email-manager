@@ -52,6 +52,7 @@ Last updated: 2026-07-25
 
 ## Timeline
 
+- **2026-07-29:** Added the first-party `/changelog` surface to the Astro public site. The page records verified product history, keeps planned work in GitHub Issues, and links to the canonical `sass-maker/email-manager` source repository.
 - **2026-07-25:** Removed the redundant general weekly quality workflow. Typechecking now runs in the required push/PR CI job alongside lint, unit tests, build, and docs validation; Playwright remains a release-relevant local check. The privacy-safe Foundry evidence snapshot remains the only recurring GitHub Action.
 - **2026-07-20:** Completed the earlier triage de-scope: removed the unreachable queue/session implementation and stale action state, retained `#today` and `#triage` as compatibility aliases to Inbox, and aligned product, architecture, and landing documentation. Historical triage PRDs remain archived.
 - **2026-07-19:** Added privacy-safe Foundry evidence automation: durable sync failure recording (`InboxSyncMeta.lastError` with sanitized stage/class/timestamp, cleared on success), `classifySyncError()` helper, sync lifecycle unit tests (`src/lib/__tests__/inbox-sync.test.ts`), `pnpm foundry:evidence` script (`scripts/foundry-evidence.mjs`) that generates `foundry-evidence.json` with build/sync/auth invariants (no email content or tokens), and `foundry-evidence.yml` CI workflow that uploads the artifact on push + weekly. See `docs/operations/foundry-evidence.md`.
@@ -161,7 +162,7 @@ Last updated: 2026-07-25
 
 ### Marketing (Astro `landing-astro/`)
 
-- Static `/` landing: hero, features, CTA → `/app`.
+- Static `/` landing and `/changelog`: product introduction plus an owned, verified release history; CTA → `/app`.
 - Built into `dist/index.html` — not separate Pages project.
 
 ### Tests
