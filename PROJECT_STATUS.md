@@ -171,28 +171,8 @@ Last updated: 2026-07-25
 - `pnpm digest:verify` golden-file check for digest builder.
 - CI (`ci.yml`): lint + typecheck + unit tests + build + docs validation. Playwright is run locally before releases when relevant.
 
-## Todo / Planned / Deferred / Blocked
+## Work queue
 
-### Planned
-
-1. ~~IndexedDB `digests` store with 90-day retention.~~ **Paused** — maintenance mode; reopen only for validated digest usage.
-2. ~~Add e2e to `ci.yml` for signed-in flows.~~ **Paused** — OAuth remains operator/manual-only.
-
-### Closure
-
-- **Finish-and-pause (2026-07-10):** inbox browsing, local semantic search, digest verification, and error handling are the maintained baseline. No new feature work is planned.
-
-### Deferred
-
-- Server-side digest cron or email delivery.
-- LLM-written digest prose.
-- Automatic sync to Today Little Log (manual export only).
-- Saved filter recipe presets.
-- Commercial "personal reporter" positioning.
-- Digest prefs in `localStorage` `email-manager:digest:*` (planned, not shipped).
-
-### Blocked
-
-- D1 bindings resolve only under `wrangler dev` / deployed worker — use `pnpm dev` or `pnpm dev:api` for `/api/*`.
-- Signed-in e2e flows require manual OAuth (unit tests cover lib logic only).
-- Signed-in Playwright coverage remains release/manual-only because it requires OAuth.
+Open work is tracked only in [GitHub Issues](https://github.com/sarthakagrawal927/email-manager/issues).
+An open issue is a to-do, a linked pull request is in progress, and merge plus
+issue closure makes the work done.

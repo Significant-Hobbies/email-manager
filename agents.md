@@ -49,8 +49,8 @@ pnpm docs:build   # Blume docs build → apps/docs-blume/dist/
 
 | Need | Where |
 | --- | --- |
-| Current objective, active work, blockers, next steps | [`STATUS.md`](STATUS.md) |
-| Detailed timeline + shipped feature inventory | [`PROJECT_STATUS.md`](PROJECT_STATUS.md) |
+| Current/shipped product truth | [`PROJECT_STATUS.md`](PROJECT_STATUS.md) |
+| Open work and blockers | GitHub Issues |
 | Knowledge system layout + maintenance rules | [`docs/README.md`](docs/README.md) |
 | Product overview, scope, users | [`docs/product/`](docs/product/) |
 | System architecture + data flow | [`docs/architecture/`](docs/architecture/) |
