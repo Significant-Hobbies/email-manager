@@ -61,7 +61,7 @@ export function SignInScreen() {
             </h1>
             <p className="max-w-lg text-base leading-relaxed text-[var(--text-muted)] text-pretty">
               Kinetic is a keyboard-driven inbox workspace with semantic search, sender analytics,
-              and filter recipes — built so your mailbox never leaves the browser.
+              and filter recipes — built so mailbox content is never stored on our servers.
             </p>
           </div>
 

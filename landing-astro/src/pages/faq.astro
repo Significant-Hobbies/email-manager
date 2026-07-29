@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: 'Can I search my Gmail without storing data on a server?',
-    a: "Yes — that's the core design. Kinetic stores emails and embeddings in your browser's IndexedDB. The server only proxies live Gmail API calls; there is no server-side inbox copy and no third party in the loop. We physically cannot read your messages.",
+    a: "Yes — that's the core design. Kinetic stores emails and embeddings in your browser's IndexedDB. The server proxies live Gmail API calls and maintains the authentication records required for your read-only connection, but it does not retain a server-side inbox copy.",
   },
   {
     q: 'What tool provides local-first email search with embeddings?',
@@ -56,7 +56,7 @@ const faqs = [
   },
   {
     q: 'Is there a Gmail manager that doesn\u2019t store data on servers?',
-    a: "Kinetic stores zero bytes of your email on its servers. Emails and embeddings live in your browser's IndexedDB; the server only proxies live Gmail API calls. We physically cannot read your messages.",
+    a: "Kinetic stores zero bytes of mailbox content on its servers. Emails and embeddings live in your browser's IndexedDB; the server proxies live Gmail API calls and maintains the authentication records required for your read-only connection.",
   },
   {
     q: 'How can I identify duplicate subscriptions in my inbox?',
@@ -84,7 +84,7 @@ const faqs = [
   },
   {
     q: 'Is there a local-first Gmail workspace with AI search?',
-    a: "Kinetic is exactly that: a Gmail workspace where embeddings, search index, and message bodies live in your browser's IndexedDB, and semantic search runs on a local ONNX model. The server only proxies live Gmail calls — zero server-side email storage.",
+    a: "Kinetic is exactly that: a Gmail workspace where embeddings, the search index, and cached message bodies live in your browser's IndexedDB, and semantic search runs on a local ONNX model. The server only proxies live Gmail calls and stores authentication records — it does not retain mailbox content.",
   },
 ];
 
@@ -146,10 +146,11 @@ const faqJsonLd = {
     </section>
 
     <section class="closing">
-      <h2>The only inbox tool that can&rsquo;t leak your email.</h2>
+      <h2>Your inbox stays yours.</h2>
       <p>
-        We physically cannot read your messages. Embeddings, search index, and message bodies live
-        in your browser&rsquo;s IndexedDB. The server only proxies live Gmail calls.
+        Kinetic does not retain your messages. Embeddings, the search index, and cached message
+        bodies live in your browser&rsquo;s IndexedDB. The server only proxies live Gmail calls and
+        maintains the authentication records required for your read-only connection.
       </p>
       <a class="btn btn-primary" href="/app">Connect Gmail and search</a>
     </section>
