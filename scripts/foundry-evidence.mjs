@@ -22,7 +22,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const OUT = path.join(repoRoot, 'foundry-evidence.json');
 
 const PROJECT = 'email-manager';
-const DEPLOY_URL = 'https://mail.sassmaker.com';
+const DEPLOY_URL = 'https://mail.significanthobbies.com';
 
 /** @returns {{ status: 'pass'|'fail'|'skip', seconds?: number }} */
 async function runStep(label, cmd) {

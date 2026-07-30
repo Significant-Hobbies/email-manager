@@ -2,12 +2,12 @@
 
 ## Deploy target
 
-Cloudflare Worker `email-manager` serving `mail.sassmaker.com`.
+Cloudflare Worker `email-manager` serving `mail.significanthobbies.com`.
 
 - Worker entry: `src/worker.ts` (Hono).
 - Assets: `dist/` directory via `ASSETS` binding.
 - D1 binding: `DB` → `email-manager-auth` (`e770dfa2-1032-4a12-b0fb-52e77f5319e8`).
-- Custom domain: `mail.sassmaker.com` (configured in `wrangler.toml`).
+- Custom domain: `mail.significanthobbies.com` (configured in `wrangler.toml`).
 - Smart Placement: `[placement] mode = "smart"` — reduces D1 round-trip latency.
 - Observability: enabled, 10% head sampling.
 - CPU limit: 30000ms.
@@ -41,6 +41,7 @@ compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 assets = { directory = "dist", binding = "ASSETS", not_found_handling = "none" }
 
 routes = [
+  { pattern = "mail.significanthobbies.com", custom_domain = true },
   { pattern = "mail.sassmaker.com", custom_domain = true }
 ]
 
@@ -62,7 +63,7 @@ migrations_dir = "migrations"
 
 [vars]
 NODE_ENV = "production"
-BETTER_AUTH_URL = "https://mail.sassmaker.com"
+BETTER_AUTH_URL = "https://mail.significanthobbies.com"
 ```
 
 ### SPA vs landing asset serving
@@ -87,7 +88,7 @@ for `/app` navigations. The Worker handles SPA route serving explicitly from
 | Var | Value |
 | --- | --- |
 | `NODE_ENV` | `production` |
-| `BETTER_AUTH_URL` | `https://mail.sassmaker.com` |
+| `BETTER_AUTH_URL` | `https://mail.significanthobbies.com` |
 
 ### Client build var (Vite, `.env` or `.env.local`)
 
@@ -109,7 +110,7 @@ Must be registered in Google Cloud Console (see
 [`runbooks/oauth-setup.md`](runbooks/oauth-setup.md)):
 
 - `http://localhost:8787/api/auth/callback/google`
-- `https://mail.sassmaker.com/api/auth/callback/google`
+- `https://mail.significanthobbies.com/api/auth/callback/google`
 
 `redirect_uri_mismatch` errors mean the callback URL is not registered. This is
 the most common setup footgun for new environments.

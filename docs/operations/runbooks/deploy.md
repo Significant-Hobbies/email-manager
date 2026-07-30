@@ -24,7 +24,7 @@ pnpm deploy    # pnpm build && wrangler deploy
 curl --fail --silent --show-error --location --max-time 30 \
   https://email-manager.sarthakagrawal927.workers.dev >/dev/null && echo "OK"
 curl --fail --silent --show-error --location --max-time 30 \
-  https://mail.sassmaker.com/api/health | jq .auth.googleConfigured
+  https://mail.significanthobbies.com/api/health | jq .auth.googleConfigured
 # Should be: true
 ```
 
@@ -40,9 +40,9 @@ Required repo secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 
 ## What to check after deploy
 
-- [ ] `https://mail.sassmaker.com/` loads the Astro landing.
-- [ ] `https://mail.sassmaker.com/api/health` returns `googleConfigured: true`.
-- [ ] `https://mail.sassmaker.com/app` loads the SPA shell.
+- [ ] `https://mail.significanthobbies.com/` loads the Astro landing.
+- [ ] `https://mail.significanthobbies.com/api/health` returns `googleConfigured: true`.
+- [ ] `https://mail.significanthobbies.com/app` loads the SPA shell.
 - [ ] Sign-in flow works (Google OAuth callback resolves).
 - [ ] No CSP errors in browser console (especially HuggingFace CDN for ONNX
       model — see [`../../knowledge/learnings/lessons.md`](../../knowledge/learnings/lessons.md) lesson 2).

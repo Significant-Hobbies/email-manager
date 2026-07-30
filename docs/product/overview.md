@@ -64,7 +64,7 @@ For the full inventory, see
 
 ## Products
 
-- **Worker (SPA + API):** https://mail.sassmaker.com — worker `email-manager`;
+- **Worker (SPA + API):** https://mail.significanthobbies.com — worker `email-manager`;
   D1 `email-manager-auth` (`e770dfa2-1032-4a12-b0fb-52e77f5319e8`).
 - **Landing:** `/` Astro static marketing overlaid to `dist/index.html`.
 - **App shell:** `/app` SPA with hash-based sub-views; signed-in users 302 from

@@ -10,7 +10,7 @@ Register BOTH of these in Google Cloud Console → APIs & Services → Credentia
 → OAuth 2.0 Client ID → Authorized redirect URIs:
 
 - `http://localhost:8787/api/auth/callback/google` (local dev)
-- `https://mail.sassmaker.com/api/auth/callback/google` (production)
+- `https://mail.significanthobbies.com/api/auth/callback/google` (production)
 
 ## Steps
 
@@ -29,7 +29,7 @@ Register BOTH of these in Google Cloud Console → APIs & Services → Credentia
 grep -c "GOOGLE_CLIENT_ID\|GOOGLE_CLIENT_SECRET" .dev.vars
 
 # Production: check the health endpoint
-curl https://mail.sassmaker.com/api/health | jq .auth.googleConfigured
+curl https://mail.significanthobbies.com/api/health | jq .auth.googleConfigured
 # Should be: true
 ```
 

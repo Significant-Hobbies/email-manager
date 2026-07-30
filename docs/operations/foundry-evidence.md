@@ -52,7 +52,7 @@ the source. No dev server, no OAuth, no network calls to Gmail.
 | `errors.genericClientMessages` | boolean | invariant check |
 | `errors.classes` | string[] | coarse error classes only |
 | `deploy.state` | `"deployed"` | static |
-| `deploy.url` | `"https://mail.sassmaker.com"` | public URL |
+| `deploy.url` | `"https://mail.significanthobbies.com"` | public URL |
 | `deploy.autoDeploy` | `false` | static |
 | `deploy.mainReleasable` | boolean | aggregate (lint + build pass) |
 | `blockers` | string[] | external blockers, if any |

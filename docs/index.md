@@ -41,4 +41,4 @@ is fetched on demand and cached locally in IndexedDB inside the browser.
 
 ## Live app
 
-[mail.sassmaker.com](https://mail.sassmaker.com) — Cloudflare Worker (`email-manager`).
+[mail.significanthobbies.com](https://mail.significanthobbies.com) — Cloudflare Worker (`email-manager`).

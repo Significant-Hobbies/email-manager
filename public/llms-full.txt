@@ -14,22 +14,22 @@ Mailbox content is private. Agents should only use public product description su
 
 ## Agent entrypoints
 
-- https://mail.sassmaker.com/llms.txt
-- https://mail.sassmaker.com/api/ai
-- https://mail.sassmaker.com/index.md
+- https://mail.significanthobbies.com/llms.txt
+- https://mail.significanthobbies.com/api/ai
+- https://mail.significanthobbies.com/index.md
 
 ## Product links
 
-- Home: https://mail.sassmaker.com/ — App shell
+- Home: https://mail.significanthobbies.com/ — App shell
 
 ## Machine surfaces
 
-- https://mail.sassmaker.com/llms.txt
-- https://mail.sassmaker.com/llms-full.txt
-- https://mail.sassmaker.com/api/ai
-- https://mail.sassmaker.com/index.md
-- https://mail.sassmaker.com/sitemap.xml
-- https://mail.sassmaker.com/robots.txt
+- https://mail.significanthobbies.com/llms.txt
+- https://mail.significanthobbies.com/llms-full.txt
+- https://mail.significanthobbies.com/api/ai
+- https://mail.significanthobbies.com/index.md
+- https://mail.significanthobbies.com/sitemap.xml
+- https://mail.significanthobbies.com/robots.txt
 
 ## Contact / fleet
 

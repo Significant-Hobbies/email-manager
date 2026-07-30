@@ -168,4 +168,4 @@ Pages project. The Worker serves `dist/index.html` for `GET /` and
 - `[placement] mode = "smart"` — reduces D1 round-trip latency.
 - `[observability] enabled = true, head_sampling_rate = 0.1`.
 - `[[d1_databases]]` binding `DB` → `email-manager-auth`.
-- Custom domain: `mail.sassmaker.com`.
+- Custom domain: `mail.significanthobbies.com`.

@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-07-25
+Last updated: 2026-07-30
 
 ## Why / What
 
@@ -48,15 +48,16 @@ Last updated: 2026-07-25
 
 **OAuth callbacks (must register in Google Cloud Console):**
 - `http://localhost:8787/api/auth/callback/google`
-- `https://mail.sassmaker.com/api/auth/callback/google`
+- `https://mail.significanthobbies.com/api/auth/callback/google`
 
 ## Timeline
 
-- **2026-07-29:** Added the first-party `/changelog` surface to the Astro public site. The page records verified product history, keeps planned work in GitHub Issues, and links to the canonical `sass-maker/email-manager` source repository.
+- **2026-07-30:** Attached `mail.significanthobbies.com` to the existing `email-manager` Worker without deploying a new script. The old hostname remains attached until the new Google OAuth callback is registered and verified.
+- **2026-07-29:** Added the first-party `/changelog` surface to the Astro public site. The page records verified product history, keeps planned work in GitHub Issues, and links to the canonical `Significant-Hobbies/email-manager` source repository.
 - **2026-07-25:** Removed the redundant general weekly quality workflow. Typechecking now runs in the required push/PR CI job alongside lint, unit tests, build, and docs validation; Playwright remains a release-relevant local check. The privacy-safe Foundry evidence snapshot remains the only recurring GitHub Action.
 - **2026-07-20:** Completed the earlier triage de-scope: removed the unreachable queue/session implementation and stale action state, retained `#today` and `#triage` as compatibility aliases to Inbox, and aligned product, architecture, and landing documentation. Historical triage PRDs remain archived.
 - **2026-07-19:** Added privacy-safe Foundry evidence automation: durable sync failure recording (`InboxSyncMeta.lastError` with sanitized stage/class/timestamp, cleared on success), `classifySyncError()` helper, sync lifecycle unit tests (`src/lib/__tests__/inbox-sync.test.ts`), `pnpm foundry:evidence` script (`scripts/foundry-evidence.mjs`) that generates `foundry-evidence.json` with build/sync/auth invariants (no email content or tokens), and `foundry-evidence.yml` CI workflow that uploads the artifact on push + weekly. See `docs/operations/foundry-evidence.md`.
-- **2026-07-13:** Allowed Cloudflare Web Analytics in the production CSP so the canonical `mail.sassmaker.com` surface loads without blocked-script errors.
+- **2026-07-13:** Allowed Cloudflare Web Analytics in the production CSP so the then-canonical `mail.sassmaker.com` surface loads without blocked-script errors.
 
 - **2026-07-04** — Keyboard-driven batch triage promoted to the primary `#today` interface: `j`/`k` + arrows navigate, `Shift+arrows` extend multi-select, `d`/`f`/`s` act on all selected (or focused) messages, `?` toggles a shortcut help overlay, `Esc` clears selection. Per-row kbd hints on the focused message; `ShortcutHelpOverlay` component shared by both the queue and the focused session. `isTypingTarget` extracted to `triage-session.ts` (duck-typed, Node-safe) so shortcuts never fire inside text inputs.
 - **2026-07-03** — Keyboard triage session mode on `#today`: works through next 25 unread-but-unsorted messages one at a time with single-key actions (`d`/`f`/`s`, `j`/`k`, `Esc`); closes planned "triage keyboard shortcuts" item.
@@ -68,7 +69,8 @@ Last updated: 2026-07-25
 
 ## Products
 
-- **Worker (SPA + API):** https://mail.sassmaker.com — worker `email-manager`; D1 `email-manager-auth` (`e770dfa2-1032-4a12-b0fb-52e77f5319e8`).
+- **Worker (SPA + API):** https://mail.significanthobbies.com — worker `email-manager`; D1 `email-manager-auth` (`e770dfa2-1032-4a12-b0fb-52e77f5319e8`).
+- **Compatibility hostname:** https://mail.sassmaker.com remains attached until the Significant Hobbies Google OAuth callback is verified.
 - **Landing:** `/` Astro static marketing overlaid to `dist/index.html` (not separate Pages project).
 - **App shell:** `/app` SPA with hash-based sub-views; signed-in users 302 from `/` → `/app`.
 - **Local dev:** Vite :5173 + wrangler :8787.

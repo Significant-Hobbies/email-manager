@@ -182,7 +182,7 @@ on 2026-06-10.
 
 `redirect_uri_mismatch` errors mean the callback URL in Google Cloud Console does not
 match the deployed URL. Both `http://localhost:3000/api/auth/callback/google` and
-`https://mail.sassmaker.com/api/auth/callback/google` must be
+`https://mail.significanthobbies.com/api/auth/callback/google` must be
 registered. This is a manual step with no automation; it is the most common setup
 footgun for new environments.
 

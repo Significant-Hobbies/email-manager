@@ -4,14 +4,14 @@
 
 ## Product
 
-- [Home](https://mail.sassmaker.com/): App shell
-- [FAQ](https://mail.sassmaker.com/faq): Frequently asked questions
+- [Home](https://mail.significanthobbies.com/): App shell
+- [FAQ](https://mail.significanthobbies.com/faq): Frequently asked questions
 
 ## Machine surfaces
 
-- [Agent catalog](https://mail.sassmaker.com/api/ai): JSON inventory of public surfaces
-- [Homepage markdown](https://mail.sassmaker.com/index.md): Product brief without JS
-- [This index](https://mail.sassmaker.com/llms.txt)
+- [Agent catalog](https://mail.significanthobbies.com/api/ai): JSON inventory of public surfaces
+- [Homepage markdown](https://mail.significanthobbies.com/index.md): Product brief without JS
+- [This index](https://mail.significanthobbies.com/llms.txt)
 
 ## Optional
 

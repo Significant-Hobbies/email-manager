@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mail.sassmaker.com/sitemap.xml
+Sitemap: https://mail.significanthobbies.com/sitemap.xml
 # Agent indexing
 Allow: /llms.txt
 Allow: /index.md

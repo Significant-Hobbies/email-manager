@@ -42,7 +42,7 @@ Must be registered in Google Cloud Console (see
 [`../operations/runbooks/oauth-setup.md`](../operations/runbooks/oauth-setup.md)):
 
 - `http://localhost:8787/api/auth/callback/google`
-- `https://mail.sassmaker.com/api/auth/callback/google`
+- `https://mail.significanthobbies.com/api/auth/callback/google`
 
 ## Build
 

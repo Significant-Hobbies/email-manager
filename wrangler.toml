@@ -9,6 +9,7 @@ compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 assets = { directory = "dist", binding = "ASSETS", not_found_handling = "none" }
 
 routes = [
+  { pattern = "mail.significanthobbies.com", custom_domain = true },
   { pattern = "mail.sassmaker.com", custom_domain = true }
 ]
 
@@ -30,7 +31,7 @@ migrations_dir = "migrations"
 
 [vars]
 NODE_ENV = "production"
-BETTER_AUTH_URL = "https://mail.sassmaker.com"
+BETTER_AUTH_URL = "https://mail.significanthobbies.com"
 
 [dev]
 port = 8787

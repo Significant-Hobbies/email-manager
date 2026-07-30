@@ -17,7 +17,7 @@ Unified email management and automation tool.
 
 Email Manager is a Gmail inbox workspace with local-first semantic search. It signs in with Google, reads Gmail through the Gmail API, stores email metadata and embeddings in the browser, and supports triage, search, analytics, and unsubscribe workflows without persisting mailbox contents on the server.
 
-Email Manager Gmail inbox workspace with local-first semantic search. The app signs in with Google, reads Gmail through the Gmail API, stores email metadata and embeddings in the browser, and lets the user search, inspect, analyze, and unsubscribe without persisting mailbox contents on the server. Live app: <https://mail.sassmaker.com What It Does - Browse Gmail views for inbox, starred, sent, trash, subscriptions, and analytics. - Search normal email metadata and run semantic search over locally generated embeddings. - Generate embeddings in-browser with Hugging Face Transformers / ONNX. - Keep email data and embeddings in IndexedDB instead of a server database. - P
+Email Manager Gmail inbox workspace with local-first semantic search. The app signs in with Google, reads Gmail through the Gmail API, stores email metadata and embeddings in the browser, and lets the user search, inspect, analyze, and unsubscribe without persisting mailbox contents on the server. Live app: <https://mail.significanthobbies.com What It Does - Browse Gmail views for inbox, starred, sent, trash, subscriptions, and analytics. - Search normal email metadata and run semantic search over locally generated embeddings. - Generate embeddings in-browser with Hugging Face Transformers / ONNX. - Keep email data and embeddings in IndexedDB instead of a server database. - P
 
 ## Feature Map
 

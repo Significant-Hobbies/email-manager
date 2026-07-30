@@ -8,6 +8,6 @@ Mailbox content is private. Agents should only use public product description su
 
 ## Agent entrypoints
 
-- https://mail.sassmaker.com/llms.txt
-- https://mail.sassmaker.com/api/ai
-- https://mail.sassmaker.com/index.md
+- https://mail.significanthobbies.com/llms.txt
+- https://mail.significanthobbies.com/api/ai
+- https://mail.significanthobbies.com/index.md

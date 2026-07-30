@@ -44,6 +44,6 @@ Cut-over checklist:
 
 ## What stays non-Blume
 
-The product app (`mail.sassmaker.com`) keeps its own Vite SPA + Hono Worker +
+The product app (`mail.significanthobbies.com`) keeps its own Vite SPA + Hono Worker +
 Astro landing overlay. Blume is for the **docs corpus** only, not the app shell
 or marketing landing.

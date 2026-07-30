@@ -5,7 +5,7 @@ Google, reads Gmail through the Gmail API, stores email metadata and embeddings
 in the browser, and lets the user search, inspect, analyze, and unsubscribe
 without persisting mailbox contents on the server.
 
-Live app: <https://mail.sassmaker.com>
+Live app: <https://mail.significanthobbies.com>
 
 ## What It Does
 
@@ -70,7 +70,7 @@ Optional client build var (`.env` or `.env.local` for Vite):
 Google OAuth must allow the local and production callback URLs:
 
 - `http://localhost:8787/api/auth/callback/google`
-- `https://mail.sassmaker.com/api/auth/callback/google`
+- `https://mail.significanthobbies.com/api/auth/callback/google`
 
 ## Scripts
 

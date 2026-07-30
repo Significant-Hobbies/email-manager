@@ -12,18 +12,18 @@
 // biome-ignore format: generated payload from apply-agent-surfaces (JSON keys/quotes)
 export const AGENT_SURFACE = {
   "name": "Email Manager",
-  "url": "https://mail.sassmaker.com",
-  "llmsFullTxt": "# Email Manager — full agent brief\n\nGmail workspace with local semantic search — private email tooling.\n\n## Index\n\n# Email Manager\n\nGmail workspace with local semantic search.\n\n## Privacy\n\nMailbox content is private. Agents should only use public product description surfaces.\n\n## Agent entrypoints\n\n- https://mail.sassmaker.com/llms.txt\n- https://mail.sassmaker.com/api/ai\n- https://mail.sassmaker.com/index.md\n\n## Product links\n\n- Home: https://mail.sassmaker.com/ — App shell\n\n## Machine surfaces\n\n- https://mail.sassmaker.com/llms.txt\n- https://mail.sassmaker.com/llms-full.txt\n- https://mail.sassmaker.com/api/ai\n- https://mail.sassmaker.com/index.md\n- https://mail.sassmaker.com/sitemap.xml\n- https://mail.sassmaker.com/robots.txt\n\n## Contact / fleet\n\n- Fleet: https://sassmaker.com\n- Agent email for directory verification: sarthakagrawal@agentmail.to\n",
-  "llmsTxt": "# Email Manager\n\n> Gmail workspace with local semantic search — private email tooling.\n\n## Product\n\n- [Home](https://mail.sassmaker.com/): App shell\n\n## Machine surfaces\n\n- [Agent catalog](https://mail.sassmaker.com/api/ai): JSON inventory of public surfaces\n- [Homepage markdown](https://mail.sassmaker.com/index.md): Product brief without JS\n- [This index](https://mail.sassmaker.com/llms.txt)\n\n## Optional\n\n- [Foundry](https://sassmaker.com): Parent fleet showcase\n",
-  "indexMd": "# Email Manager\n\nGmail workspace with local semantic search.\n\n## Privacy\n\nMailbox content is private. Agents should only use public product description surfaces.\n\n## Agent entrypoints\n\n- https://mail.sassmaker.com/llms.txt\n- https://mail.sassmaker.com/api/ai\n- https://mail.sassmaker.com/index.md\n",
+  "url": "https://mail.significanthobbies.com",
+  "llmsFullTxt": "# Email Manager — full agent brief\n\nGmail workspace with local semantic search — private email tooling.\n\n## Index\n\n# Email Manager\n\nGmail workspace with local semantic search.\n\n## Privacy\n\nMailbox content is private. Agents should only use public product description surfaces.\n\n## Agent entrypoints\n\n- https://mail.significanthobbies.com/llms.txt\n- https://mail.significanthobbies.com/api/ai\n- https://mail.significanthobbies.com/index.md\n\n## Product links\n\n- Home: https://mail.significanthobbies.com/ — App shell\n\n## Machine surfaces\n\n- https://mail.significanthobbies.com/llms.txt\n- https://mail.significanthobbies.com/llms-full.txt\n- https://mail.significanthobbies.com/api/ai\n- https://mail.significanthobbies.com/index.md\n- https://mail.significanthobbies.com/sitemap.xml\n- https://mail.significanthobbies.com/robots.txt\n\n## Contact / fleet\n\n- Fleet: https://sassmaker.com\n- Agent email for directory verification: sarthakagrawal@agentmail.to\n",
+  "llmsTxt": "# Email Manager\n\n> Gmail workspace with local semantic search — private email tooling.\n\n## Product\n\n- [Home](https://mail.significanthobbies.com/): App shell\n\n## Machine surfaces\n\n- [Agent catalog](https://mail.significanthobbies.com/api/ai): JSON inventory of public surfaces\n- [Homepage markdown](https://mail.significanthobbies.com/index.md): Product brief without JS\n- [This index](https://mail.significanthobbies.com/llms.txt)\n\n## Optional\n\n- [Foundry](https://sassmaker.com): Parent fleet showcase\n",
+  "indexMd": "# Email Manager\n\nGmail workspace with local semantic search.\n\n## Privacy\n\nMailbox content is private. Agents should only use public product description surfaces.\n\n## Agent entrypoints\n\n- https://mail.significanthobbies.com/llms.txt\n- https://mail.significanthobbies.com/api/ai\n- https://mail.significanthobbies.com/index.md\n",
   "catalog": {
     "name": "Email Manager",
     "version": "1",
-    "url": "https://mail.sassmaker.com",
-    "llms": "https://mail.sassmaker.com/llms.txt",
-    "llmsFull": "https://mail.sassmaker.com/llms-full.txt",
-    "sitemap": "https://mail.sassmaker.com/sitemap.xml",
-    "robots": "https://mail.sassmaker.com/robots.txt",
+    "url": "https://mail.significanthobbies.com",
+    "llms": "https://mail.significanthobbies.com/llms.txt",
+    "llmsFull": "https://mail.significanthobbies.com/llms-full.txt",
+    "sitemap": "https://mail.significanthobbies.com/sitemap.xml",
+    "robots": "https://mail.significanthobbies.com/robots.txt",
     "markdown": {
       "suffix": ".md",
       "negotiation": true
@@ -31,8 +31,8 @@ export const AGENT_SURFACE = {
     "surfaces": [
       {
         "id": "home",
-        "url": "https://mail.sassmaker.com/",
-        "md": "https://mail.sassmaker.com/index.md",
+        "url": "https://mail.significanthobbies.com/",
+        "md": "https://mail.significanthobbies.com/index.md",
         "kind": "spa",
         "description": "Product home"
       }
