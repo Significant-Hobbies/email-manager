@@ -21,6 +21,8 @@ Mailbox content is private. Agents should only use public product description su
 ## Product links
 
 - Home: https://mail.significanthobbies.com/ — App shell
+- FAQ: https://mail.significanthobbies.com/faq — Public product and privacy questions
+- Changelog: https://mail.significanthobbies.com/changelog — Verified product history
 
 ## Machine surfaces
 

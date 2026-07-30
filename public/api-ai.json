@@ -17,10 +17,24 @@
       "md": "https://mail.significanthobbies.com/index.md",
       "kind": "spa",
       "description": "Product home"
+    },
+    {
+      "id": "faq",
+      "url": "https://mail.significanthobbies.com/faq",
+      "md": "https://mail.significanthobbies.com/faq.md",
+      "kind": "static",
+      "description": "Privacy, semantic search, subscriptions, and sender analytics questions"
+    },
+    {
+      "id": "changelog",
+      "url": "https://mail.significanthobbies.com/changelog",
+      "md": "https://mail.significanthobbies.com/changelog.md",
+      "kind": "static",
+      "description": "Verified product, privacy, reliability, and operations changes"
     }
   ],
   "auth": {
     "public": true,
-    "notes": "Auth-walled app routes are not agent-indexed unless listed here."
+    "notes": "Mailbox content and authenticated app routes are private and intentionally excluded."
   }
 }

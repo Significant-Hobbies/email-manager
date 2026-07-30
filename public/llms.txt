@@ -6,6 +6,7 @@
 
 - [Home](https://mail.significanthobbies.com/): App shell
 - [FAQ](https://mail.significanthobbies.com/faq): Frequently asked questions
+- [Changelog](https://mail.significanthobbies.com/changelog): Verified product history
 
 ## Machine surfaces
 
