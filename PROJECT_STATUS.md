@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Why / What
 
