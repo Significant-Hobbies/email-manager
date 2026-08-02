@@ -52,9 +52,7 @@ Last updated: 2026-07-31
 
 ## Timeline
 
-- **2026-07-31:** Completed the public homepage search metadata with canonical
-  structured product data and a concise description while preserving the
-  local-first, read-only Gmail boundary.
+- **2026-07-31:** Reframed the newest changelog entry around its user-facing reliability outcome and refreshed the 390px, 768px, and 1440px design evidence; the preserve-lane critique now passes at 36/40.
 - **2026-07-30:** Attached `mail.significanthobbies.com` to the existing `email-manager` Worker without deploying a new script. The old hostname remains attached until the new Google OAuth callback is registered and verified.
 - **2026-07-29:** Added the first-party `/changelog` surface to the Astro public site. The page records verified product history, keeps planned work in GitHub Issues, and links to the canonical `Significant-Hobbies/email-manager` source repository.
 - **2026-07-25:** Removed the redundant general weekly quality workflow. Typechecking now runs in the required push/PR CI job alongside lint, unit tests, build, and docs validation; Playwright remains a release-relevant local check. The privacy-safe Foundry evidence snapshot remains the only recurring GitHub Action.
