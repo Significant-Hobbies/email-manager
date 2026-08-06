@@ -10,7 +10,7 @@ human-readable companion.
   env vars, D1 binding, custom domain.
 - [`foundry-evidence.md`](foundry-evidence.md) — privacy-safe build/sync/auth
   evidence for the Foundry.
-- [`jobs/`](jobs/) — catalog of CI, Foundry evidence, and deploy workflows.
+- [`jobs/`](jobs/) — catalog of CI and deploy workflows.
 - [`runbooks/`](runbooks/) — step-by-step runbooks (local dev, OAuth setup,
   digest verify, deploy).
 
