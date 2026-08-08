@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-07-31
+Last updated: 2026-08-09
 
 ## Why / What
 
@@ -22,6 +22,9 @@ Last updated: 2026-07-31
 - **Hugging Face Transformers/ONNX:** client-side embeddings in IndexedDB (`@huggingface/transformers`).
 - **PostHog:** client analytics (`VITE_POSTHOG_KEY`).
 - **Cloudflare:** Workers (Hono), D1 (`email-manager-auth`).
+- **Ultracite 7.10.2:** exact development-only Biome preset dependency; local
+  exceptions preserve Email Manager's established formatting and code-style
+  contract without changing runtime behavior.
 - **Secrets (names only):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`.
 
 ### Internal (fleet)
@@ -52,6 +55,10 @@ Last updated: 2026-07-31
 
 ## Timeline
 
+- **2026-08-09:** Adopted the verified Ultracite-backed Biome baseline through
+  the existing `pnpm check` gate. The compatibility layer records current
+  project-specific exceptions explicitly; no source rewrite, production
+  dependency, runtime behavior, or deployment configuration changed.
 - **2026-07-31:** Reframed the newest changelog entry around its user-facing reliability outcome and refreshed the 390px, 768px, and 1440px design evidence; the preserve-lane critique now passes at 36/40.
 - **2026-07-30:** Attached `mail.significanthobbies.com` to the existing `email-manager` Worker without deploying a new script. The old hostname remains attached until the new Google OAuth callback is registered and verified.
 - **2026-07-29:** Added the first-party `/changelog` surface to the Astro public site. The page records verified product history, keeps planned work in GitHub Issues, and links to the canonical `Significant-Hobbies/email-manager` source repository.
@@ -170,6 +177,8 @@ Last updated: 2026-07-31
 
 ### Tests
 
+- Exact Ultracite-backed Biome baseline with explicit local compatibility
+  exceptions; `pnpm check` remains the non-writing lint and format gate.
 - Vitest unit (`pnpm test`): digest builder, filter builder, inbox sync, formatting, subscription senders, and sent-reply state (`src/lib/__tests__/`).
 - Playwright: landing hero/features/CTA, no horizontal scroll, CTA touch target ≥44px (desktop + mobile).
 - `pnpm digest:verify` golden-file check for digest builder.
@@ -177,6 +186,6 @@ Last updated: 2026-07-31
 
 ## Work queue
 
-Open work is tracked only in [GitHub Issues](https://github.com/sarthakagrawal927/email-manager/issues).
+Open work is tracked only in [GitHub Issues](https://github.com/Significant-Hobbies/email-manager/issues).
 An open issue is a to-do, a linked pull request is in progress, and merge plus
 issue closure makes the work done.
