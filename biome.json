@@ -1,10 +1,14 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/vitest"
+  ],
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
     "includes": [
-      "**",
       "!**/.next",
       "!**/.open-next",
       "!**/.wrangler",
@@ -41,19 +45,59 @@
       "jsxQuoteStyle": "double"
     }
   },
+  "html": { "formatter": { "enabled": false } },
   "linter": {
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "a11y": { "preset": "none" },
+      "a11y": {
+        "preset": "none",
+        "noNoninteractiveElementInteractions": "off",
+        "noStaticElementInteractions": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "useButtonType": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off",
+        "noUselessUndefined": "off",
+        "noVoid": "off",
+        "useSimplifiedLogicExpression": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off",
         "noArrayIndexKey": "off",
-        "noShadowRestrictedNames": "off"
+        "noEmptyBlockStatements": "off",
+        "noLeakedRender": "off",
+        "noReactForwardRef": "off",
+        "noShadow": "off",
+        "noShadowRestrictedNames": "off",
+        "noUnnecessaryConditions": "off",
+        "useAwait": "off"
       },
-      "performance": { "noImgElement": "off" },
-      "style": { "noNonNullAssertion": "off" },
+      "nursery": { "useSortedClasses": "off" },
+      "performance": {
+        "noAwaitInLoops": "off",
+        "noImgElement": "off",
+        "noJsxPropsBind": "off",
+        "noNamespaceImport": "off",
+        "useTopLevelRegex": "off"
+      },
+      "style": {
+        "noIncrementDecrement": "off",
+        "noNegationElse": "off",
+        "noNestedTernary": "off",
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": "off",
+        "useAtIndex": "off",
+        "useBlockStatements": "off",
+        "useConsistentArrayType": "off",
+        "useConsistentArrowReturn": "off",
+        "useConsistentTypeDefinitions": "off",
+        "useDestructuring": "off",
+        "useFilenamingConvention": "off"
+      },
       "correctness": {
+        "noGlobalDirnameFilename": "off",
         "useExhaustiveDependencies": "off",
         "noUnusedVariables": "off",
         "noUnusedImports": "off",
@@ -62,5 +106,16 @@
       }
     }
   },
-  "assist": { "enabled": true, "actions": { "source": { "organizeImports": "off" } } }
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "off",
+        "useSortedAttributes": "off",
+        "useSortedInterfaceMembers": "off",
+        "useSortedKeys": "off",
+        "useSortedPackageJson": "off"
+      }
+    }
+  }
 }
