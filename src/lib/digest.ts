@@ -110,50 +110,79 @@ export function buildWeeklyDigest(
 
   const weekStartMs = periodStart.getTime();
   const weekEndMs = periodEnd.getTime() + 7 * 24 * 60 * 60 * 1000;
+  const quietCutoffMs = quietCutoff.getTime();
+  const staleCutoffMs = staleCutoff.getTime();
+  const nowMs = now.getTime();
 
-  const senderMap = new Map<string, { displayName: string; dates: number[]; count: number }>();
+  const senderMap = new Map<string, { displayName: string; lastAt: number; count: number }>();
 
   const threadMap = new Map<
     string,
     {
       subject: string;
-      dates: number[];
+      lastAt: number;
+      messageCount: number;
       starred: boolean;
     }
   >();
 
   const themeDomainCounts = new Map<string, Map<string, number>>();
+  const senderCache = new Map<
+    string,
+    { email: string; displayName: string; newsletter: boolean; domain: string }
+  >();
+  const themeKeyCache = new Map<string, string>();
 
   for (const email of emails) {
-    const { email: senderEmail, displayName } = parseSender(email.from);
-    if (isNewsletterSender(senderEmail, displayName)) continue;
+    let senderDetails = senderCache.get(email.from);
+    if (!senderDetails) {
+      const parsed = parseSender(email.from);
+      senderDetails = {
+        ...parsed,
+        newsletter: isNewsletterSender(parsed.email, parsed.displayName),
+        domain: domainFromEmail(parsed.email),
+      };
+      senderCache.set(email.from, senderDetails);
+    }
+    if (senderDetails.newsletter) continue;
 
-    const t = new Date(email.date).getTime();
+    const t = Date.parse(email.date);
     if (Number.isNaN(t)) continue;
 
-    const sender = senderMap.get(senderEmail) ?? {
-      displayName,
-      dates: [],
-      count: 0,
-    };
-    sender.dates.push(t);
-    sender.count += 1;
-    senderMap.set(senderEmail, sender);
+    const sender = senderMap.get(senderDetails.email);
+    if (sender) {
+      if (t > sender.lastAt) sender.lastAt = t;
+      sender.count += 1;
+    } else {
+      senderMap.set(senderDetails.email, {
+        displayName: senderDetails.displayName,
+        lastAt: t,
+        count: 1,
+      });
+    }
 
-    const thread = threadMap.get(email.threadId) ?? {
-      subject: email.subject,
-      dates: [],
-      starred: false,
-    };
-    thread.dates.push(t);
-    if (email.labelIds?.includes('STARRED')) thread.starred = true;
-    threadMap.set(email.threadId, thread);
+    const thread = threadMap.get(email.threadId);
+    if (thread) {
+      if (t > thread.lastAt) thread.lastAt = t;
+      thread.messageCount += 1;
+      if (email.labelIds?.includes('STARRED')) thread.starred = true;
+    } else {
+      threadMap.set(email.threadId, {
+        subject: email.subject,
+        lastAt: t,
+        messageCount: 1,
+        starred: email.labelIds?.includes('STARRED') ?? false,
+      });
+    }
 
     if (t >= weekStartMs && t < weekEndMs) {
-      const domain = domainFromEmail(senderEmail);
-      const themeKey = themeKeyFromSubject(email.subject);
+      let themeKey = themeKeyCache.get(email.subject);
+      if (!themeKey) {
+        themeKey = themeKeyFromSubject(email.subject);
+        themeKeyCache.set(email.subject, themeKey);
+      }
       const domainMap = themeDomainCounts.get(themeKey) ?? new Map();
-      domainMap.set(domain, (domainMap.get(domain) ?? 0) + 1);
+      domainMap.set(senderDetails.domain, (domainMap.get(senderDetails.domain) ?? 0) + 1);
       themeDomainCounts.set(themeKey, domainMap);
     }
   }
@@ -161,14 +190,12 @@ export function buildWeeklyDigest(
   const relationshipsQuiet: RelationshipQuiet[] = [];
   for (const [senderEmail, data] of senderMap) {
     if (data.count < minPriorMessages) continue;
-    const sorted = [...data.dates].sort((a, b) => b - a);
-    const lastAt = sorted[0];
-    if (lastAt >= quietCutoff.getTime()) continue;
-    const quietDays = Math.floor((now.getTime() - lastAt) / (24 * 60 * 60 * 1000));
+    if (data.lastAt >= quietCutoffMs) continue;
+    const quietDays = Math.floor((nowMs - data.lastAt) / (24 * 60 * 60 * 1000));
     relationshipsQuiet.push({
       senderEmail,
       displayName: data.displayName,
-      lastMessageAt: new Date(lastAt).toISOString(),
+      lastMessageAt: new Date(data.lastAt).toISOString(),
       priorMessageCount: data.count,
       quietDays,
       reason: 'no_messages_in_quiet_window',
@@ -178,34 +205,31 @@ export function buildWeeklyDigest(
 
   const threadsToRevisit: ThreadRevisit[] = [];
   for (const [threadId, data] of threadMap) {
-    const sorted = [...data.dates].sort((a, b) => b - a);
-    const lastAt = sorted[0];
-    const messageCount = sorted.length;
-    if (lastAt >= staleCutoff.getTime()) continue;
+    if (data.lastAt >= staleCutoffMs) continue;
 
     if (data.starred) {
       threadsToRevisit.push({
         threadId,
         subject: data.subject,
-        lastMessageAt: new Date(lastAt).toISOString(),
+        lastMessageAt: new Date(data.lastAt).toISOString(),
         reason: 'starred_stale',
-        messageCount,
+        messageCount: data.messageCount,
       });
       continue;
     }
 
-    if (messageCount >= 4) {
+    if (data.messageCount >= 4) {
       threadsToRevisit.push({
         threadId,
         subject: data.subject,
-        lastMessageAt: new Date(lastAt).toISOString(),
+        lastMessageAt: new Date(data.lastAt).toISOString(),
         reason: 'long_thread_stale',
-        messageCount,
+        messageCount: data.messageCount,
       });
     }
   }
-  threadsToRevisit.sort(
-    (a, b) => new Date(a.lastMessageAt).getTime() - new Date(b.lastMessageAt).getTime()
+  threadsToRevisit.sort((a, b) =>
+    a.lastMessageAt < b.lastMessageAt ? -1 : a.lastMessageAt > b.lastMessageAt ? 1 : 0
   );
 
   const weeklyThemes: WeeklyTheme[] = [...themeDomainCounts.entries()]
