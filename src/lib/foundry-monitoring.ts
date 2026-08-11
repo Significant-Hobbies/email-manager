@@ -36,7 +36,7 @@ function messageFrom(error: unknown) {
   return String(error);
 }
 
-export function capturePageCrash(error: unknown, source: 'window_error' | 'unhandled_rejection') {
+function capturePageCrash(error: unknown, source: 'window_error' | 'unhandled_rejection') {
   if (!isPostHogEnabled()) return;
   posthog.capture('foundry_page_crash', {
     project_id: PROJECT_SLUG,

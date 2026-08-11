@@ -45,7 +45,7 @@ interface AnalyticsEventMap {
   returned: { project_id: typeof PROJECT };
 }
 
-export function trackEvent(event: string, properties: Record<string, unknown> = {}): void {
+function trackEvent(event: string, properties: Record<string, unknown> = {}): void {
   if (!isPostHogEnabled()) return;
   try {
     posthog.capture(event, { project_id: PROJECT, ...properties });

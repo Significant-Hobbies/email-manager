@@ -28,5 +28,5 @@
     "src/lib/**/*.ts",
     "src/vite-env.d.ts"
   ],
-  "exclude": ["src/worker.ts", "node_modules", "tests"]
+  "exclude": ["src/worker.ts", "src/lib/__tests__/**", "node_modules", "tests"]
 }
