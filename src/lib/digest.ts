@@ -131,6 +131,7 @@ export function buildWeeklyDigest(
     string,
     { email: string; displayName: string; newsletter: boolean; domain: string }
   >();
+  const dateCache = new Map<string, number>();
   const themeKeyCache = new Map<string, string>();
 
   for (const email of emails) {
@@ -146,7 +147,11 @@ export function buildWeeklyDigest(
     }
     if (senderDetails.newsletter) continue;
 
-    const t = Date.parse(email.date);
+    let t = dateCache.get(email.date);
+    if (t === undefined) {
+      t = Date.parse(email.date);
+      dateCache.set(email.date, t);
+    }
     if (Number.isNaN(t)) continue;
 
     const sender = senderMap.get(senderDetails.email);
