@@ -160,7 +160,7 @@ export function initApiTiming(options?: ApiTimingOptions): void {
 }
 
 /** Stop sampling and flush remaining entries. */
-export function stopApiTiming(): void {
+function stopApiTiming(): void {
   if (_flushTimer) {
     clearInterval(_flushTimer);
     _flushTimer = null;

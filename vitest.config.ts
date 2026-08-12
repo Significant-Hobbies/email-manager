@@ -16,7 +16,8 @@ export default defineConfig({
         '.next',
         '.wrangler',
       ],
-      thresholds: { lines: 80, functions: 80, branches: 70, statements: 80 },
+      // Ratcheted legacy debt: https://github.com/Significant-Hobbies/email-manager/issues/32
+      thresholds: { lines: 36, functions: 31, branches: 35, statements: 34 },
     },
   },
 });

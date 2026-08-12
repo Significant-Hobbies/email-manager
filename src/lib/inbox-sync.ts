@@ -31,6 +31,47 @@ export function classifySyncError(err: unknown): { stage: SyncErrorStage; class:
   return { stage: 'fetch_page', class: 'unknown' };
 }
 
+async function recordSyncError(error: unknown, meta: InboxSyncMeta): Promise<void> {
+  const { stage, class: errorClass } = classifySyncError(error);
+  await setInboxSyncMeta({
+    ...meta,
+    lastError: { stage, class: errorClass, at: new Date().toISOString() },
+  });
+}
+
+async function fetchInboxPage(
+  params: URLSearchParams,
+  signal: AbortSignal | undefined,
+  failureMeta: InboxSyncMeta
+): Promise<Response> {
+  let response: Response;
+  try {
+    response = await fetch(`/api/emails?${params}`, { signal });
+  } catch (error) {
+    await recordSyncError(error, failureMeta);
+    throw error;
+  }
+
+  if (!response.ok) {
+    const error = new Error(`API error: ${response.status}`) as Error & { status?: number };
+    error.status = response.status;
+    await recordSyncError(error, failureMeta);
+    throw error;
+  }
+
+  return response;
+}
+
+function withCachedEmbeddings(
+  emails: Email[],
+  embeddingById: Map<string, StoredEmail['embedding']>
+): StoredEmail[] {
+  return emails.map((email) => ({
+    ...email,
+    embedding: embeddingById.get(email.id) ?? null,
+  }));
+}
+
 export interface EnsureInboxOptions {
   target: number;
   metadataOnly?: boolean;
@@ -82,53 +123,25 @@ export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<En
     if (metadataOnly) params.set('metadataOnly', 'true');
     if (pageToken) params.set('pageToken', pageToken);
 
-    let res: Response;
-    try {
-      res = await fetch(`/api/emails?${params}`, { signal });
-    } catch (fetchErr) {
-      const { stage, class: cls } = classifySyncError(fetchErr);
-      await setInboxSyncMeta({
-        ...meta,
-        nextPageToken: pageToken,
-        exhausted,
-        lastSyncedAt: meta.lastSyncedAt,
-        lastError: { stage, class: cls, at: new Date().toISOString() },
-      });
-      throw fetchErr;
-    }
-
-    if (!res.ok) {
-      const err = new Error(`API error: ${res.status}`) as Error & { status?: number };
-      err.status = res.status;
-      const { stage, class: cls } = classifySyncError(err);
-      await setInboxSyncMeta({
-        ...meta,
-        nextPageToken: pageToken,
-        exhausted,
-        lastSyncedAt: meta.lastSyncedAt,
-        lastError: { stage, class: cls, at: new Date().toISOString() },
-      });
-      throw err;
-    }
+    const res = await fetchInboxPage(params, signal, {
+      ...meta,
+      nextPageToken: pageToken,
+      exhausted,
+      lastSyncedAt: meta.lastSyncedAt,
+    });
 
     const data = await res.json();
     const batch: Email[] = data.emails ?? [];
 
     if (batch.length > 0) {
-      const toStore: StoredEmail[] = batch.map((e) => ({
-        ...e,
-        embedding: embeddingById.get(e.id) ?? null,
-      }));
       try {
-        await storeEmails(toStore);
+        await storeEmails(withCachedEmbeddings(batch, embeddingById));
       } catch (storeErr) {
-        const { stage, class: cls } = classifySyncError(storeErr);
-        await setInboxSyncMeta({
+        await recordSyncError(storeErr, {
           ...meta,
           nextPageToken: pageToken,
           exhausted,
           lastSyncedAt: meta.lastSyncedAt,
-          lastError: { stage, class: cls, at: new Date().toISOString() },
         });
         throw storeErr;
       }
@@ -186,40 +199,16 @@ export async function refreshInboxHead(options?: {
     if (options?.metadataOnly) params.set('metadataOnly', 'true');
     if (pageToken) params.set('pageToken', pageToken);
 
-    let res: Response;
-    try {
-      res = await fetch(`/api/emails?${params}`, { signal: options?.signal });
-    } catch (fetchErr) {
-      const { stage, class: cls } = classifySyncError(fetchErr);
-      await setInboxSyncMeta({
-        ...meta,
-        lastSyncedAt: meta.lastSyncedAt,
-        lastError: { stage, class: cls, at: new Date().toISOString() },
-      });
-      throw fetchErr;
-    }
-
-    if (!res.ok) {
-      const err = new Error(`API error: ${res.status}`) as Error & { status?: number };
-      err.status = res.status;
-      const { stage, class: cls } = classifySyncError(err);
-      await setInboxSyncMeta({
-        ...meta,
-        lastSyncedAt: meta.lastSyncedAt,
-        lastError: { stage, class: cls, at: new Date().toISOString() },
-      });
-      throw err;
-    }
+    const res = await fetchInboxPage(params, options?.signal, {
+      ...meta,
+      lastSyncedAt: meta.lastSyncedAt,
+    });
 
     const data = await res.json();
     const batch: Email[] = data.emails ?? [];
 
     if (batch.length > 0) {
-      const toStore: StoredEmail[] = batch.map((e) => ({
-        ...e,
-        embedding: embeddingById.get(e.id) ?? null,
-      }));
-      await storeEmails(toStore);
+      await storeEmails(withCachedEmbeddings(batch, embeddingById));
       fetched += batch.length;
       options?.onProgress?.(`Updated ${fetched} recent emails…`);
     }

@@ -18,9 +18,12 @@ jobs:
           node-version: "22"
           cache: "pnpm"
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test:unit
+      - run: pip install lizard==1.23.0
+      - run: pnpm quality
       - run: pnpm build
       - run: pnpm check:docs
