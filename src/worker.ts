@@ -28,16 +28,7 @@ app.use('*', async (c, next) => {
 
 app.use('/api/*', async (c, next) => {
   await next();
-  const response = c.res;
-  const headers = new Headers(response.headers);
-  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    headers.set(key, value);
-  }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  return withSecurityHeaders(c.res);
 });
 
 function methodNotAllowed(message: string) {
