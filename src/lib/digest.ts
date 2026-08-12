@@ -86,6 +86,15 @@ function isNewsletterSender(email: string, displayName: string): boolean {
   return NEWSLETTER_RE.test(email) || NEWSLETTER_RE.test(displayName);
 }
 
+function getCachedTimestamp(value: string, cache: Map<string, number>): number {
+  const cached = cache.get(value);
+  if (cached !== undefined) return cached;
+
+  const parsed = Date.parse(value);
+  cache.set(value, parsed);
+  return parsed;
+}
+
 /**
  * Build a deterministic weekly digest from locally cached emails.
  */
@@ -147,11 +156,7 @@ export function buildWeeklyDigest(
     }
     if (senderDetails.newsletter) continue;
 
-    let t = dateCache.get(email.date);
-    if (t === undefined) {
-      t = Date.parse(email.date);
-      dateCache.set(email.date, t);
-    }
+    const t = getCachedTimestamp(email.date, dateCache);
     if (Number.isNaN(t)) continue;
 
     const sender = senderMap.get(senderDetails.email);
