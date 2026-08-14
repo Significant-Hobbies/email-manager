@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -17,16 +16,25 @@ for (const page of pages) {
   const openGraphUrl = html.match(
     /<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']/i
   )?.[1];
-  assert.equal(canonical, page.url, `${page.file}: canonical`);
-  assert.equal(openGraphUrl, page.url, `${page.file}: og:url`);
+  if (canonical !== page.url) {
+    throw new Error(
+      `${page.file}: expected canonical ${page.url}, found ${canonical || 'missing'}`
+    );
+  }
+  if (openGraphUrl !== page.url) {
+    throw new Error(
+      `${page.file}: expected og:url ${page.url}, found ${openGraphUrl || 'missing'}`
+    );
+  }
 }
 
 const sitemap = await readFile(resolve('public', 'sitemap.xml'), 'utf8');
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-assert.deepEqual(
-  sitemapUrls,
-  pages.map((page) => page.url),
-  'sitemap URLs'
-);
+const expectedSitemapUrls = pages.map((page) => page.url);
+if (JSON.stringify(sitemapUrls) !== JSON.stringify(expectedSitemapUrls)) {
+  throw new Error(
+    `Expected sitemap URLs ${expectedSitemapUrls.join(', ')}, found ${sitemapUrls.join(', ')}`
+  );
+}
 
 console.log(`Verified ${pages.length} public sitemap URLs and self-referencing canonicals.`);
