@@ -17,4 +17,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Smoke check production changelog
-        run: curl --fail --silent --show-error --location --max-time 30 https://mail.sassmaker.com/changelog >/dev/null
+        run: curl --fail --silent --show-error --location --max-time 30 https://mail.significanthobbies.com/changelog >/dev/null

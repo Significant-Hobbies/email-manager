@@ -9,6 +9,8 @@ interface Props {
 const { title, description } = Astro.props;
 
 const SITE_URL = 'https://mail.significanthobbies.com';
+const canonicalPath = Astro.url.pathname === '/index.html' ? '/' : Astro.url.pathname.replace(/\.html$/, '');
+const canonicalUrl = new URL(canonicalPath, `${SITE_URL}/`).href;
 // OG image lives on the Next.js Worker at /opengraph-image (file
 // convention → dynamic JSX → PNG). Astro can't trivially reproduce
 // that. The Worker still serves every non-`/` route so this URL
@@ -50,10 +52,10 @@ const structuredData = {
     <meta name="theme-color" content="#fbf8ff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1a1b22" media="(prefers-color-scheme: dark)" />
 
-    <link rel="canonical" href={SITE_URL} />
+    <link rel="canonical" href={canonicalUrl} />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={SITE_URL} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Kinetic" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
