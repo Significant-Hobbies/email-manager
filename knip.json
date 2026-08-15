@@ -11,6 +11,7 @@
       "ignoreDependencies": ["lightningcss"]
     },
     "landing-astro": {
+      "entry": ["public/project-strip.js"],
       "ignoreDependencies": ["lightningcss", "wrangler"]
     },
     "apps/docs-blume": {
