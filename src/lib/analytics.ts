@@ -35,6 +35,7 @@ export type CoreAction =
   | 'digest_exported';
 
 interface AnalyticsEventMap {
+  page_view: { project_id: typeof PROJECT };
   /** First session after an account is created. */
   signup: { project_id: typeof PROJECT };
   /** The user reaches first real value — opens their first message. */
@@ -59,6 +60,10 @@ function emit<K extends keyof AnalyticsEventMap>(
   props: Omit<AnalyticsEventMap[K], 'project_id'>
 ): void {
   trackEvent(event, props);
+}
+
+export function trackPageView(): void {
+  emit('page_view', {});
 }
 
 /** Fire once, on the first session after an account is created. */
