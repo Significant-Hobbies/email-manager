@@ -88,23 +88,24 @@ function getHeader(headers: any[], name: string): string {
   return headers?.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
 }
 
+function parseUnsubscribeLink(unsubHeader: string): string | null {
+  if (!unsubHeader) return null;
+  const httpRe = new RegExp('<(https?://[^>]+)>');
+  const mailtoRe = new RegExp('<(mailto:[^>]+)>');
+  // Prefer the HTTPS one-click endpoint when both forms are present,
+  // even if the mailto URI appears first in the header.
+  const httpMatch = unsubHeader.match(httpRe);
+  if (httpMatch?.[1]) return httpMatch[1];
+  const mailtoMatch = unsubHeader.match(mailtoRe);
+  if (mailtoMatch?.[1]) return mailtoMatch[1];
+  return null;
+}
+
 function parseMessage(msg: any): Email {
   const hdrs = msg.payload?.headers ?? [];
   const unsubHeader = getHeader(hdrs, 'List-Unsubscribe');
   const unsubPostHeader = getHeader(hdrs, 'List-Unsubscribe-Post');
-  let unsubscribeLink: string | null = null;
-
-  if (unsubHeader) {
-    const httpMatch = unsubHeader.match(/<(https?:\/\/[^>]+)>/);
-    const mailtoMatch = unsubHeader.match(/<(mailto:[^>]+)>/);
-    // Prefer the HTTPS one-click endpoint when both forms are present,
-    // even if the mailto URI appears first in the header.
-    if (httpMatch?.[1]) {
-      unsubscribeLink = httpMatch[1];
-    } else if (mailtoMatch?.[1]) {
-      unsubscribeLink = mailtoMatch[1];
-    }
-  }
+  const unsubscribeLink = parseUnsubscribeLink(unsubHeader);
 
   return {
     id: msg.id,

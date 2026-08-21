@@ -42,6 +42,8 @@ const LABEL_MAP: Record<string, string> = {
   sent: 'SENT',
 };
 
+const QUOTE_RE = new RegExp('"', 'g');
+
 function getViewFromHash(): View {
   if (typeof window === 'undefined') return 'inbox';
   const hash = window.location.hash.replace('#', '');
@@ -73,46 +75,11 @@ export default function HomeClient() {
   );
 }
 
-function AuthenticatedHome({
-  sessionData,
-}: {
-  sessionData: { user?: { id: string; name?: string; image?: string } };
-}) {
-  const mailbox = useMailboxStore();
-  const [view, setViewState] = useState<View>('inbox');
-
+function useSessionTracking(userId: string | undefined) {
+  const trackedRef = useRef<string | null>(null);
   useEffect(() => {
-    setViewState(getViewFromHash());
-    const onHashChange = () => setViewState(getViewFromHash());
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
-
-  const setView = useCallback((v: View) => {
-    setViewState(v);
-    window.location.hash = v;
-  }, []);
-
-  const [emails, setEmails] = useState<Email[]>([]);
-  const [selected, setSelected] = useState<Email | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const fetchingRef = useRef(false);
-  const fetchSeqRef = useRef(0);
-  const trackedSessionRef = useRef<string | null>(null);
-  const activatedRef = useRef(false);
-
-  // Owner-facing analytics — emit `signup` / `returned` on session start.
-  // `signup` fires the first time a user is seen in this browser; `returned`
-  // fires on every later session for a user with prior activity.
-  useEffect(() => {
-    const userId = sessionData?.user?.id;
-    if (!userId || trackedSessionRef.current === userId) return;
-    trackedSessionRef.current = userId;
+    if (!userId || trackedRef.current === userId) return;
+    trackedRef.current = userId;
     try {
       const key = `email-manager:seen:${userId}`;
       if (window.localStorage.getItem(key)) {
@@ -124,10 +91,13 @@ function AuthenticatedHome({
     } catch {
       // localStorage may be unavailable — never break on analytics.
     }
-  }, [sessionData]);
+  }, [userId]);
+}
 
-  // Owner-facing analytics — opening a message is the core action, and the
-  // first open is the activation milestone.
+function useEmailSelection() {
+  const [selected, setSelected] = useState<Email | null>(null);
+  const activatedRef = useRef(false);
+
   const handleSelectEmail = useCallback((email: Email | null) => {
     setSelected(email);
     if (email) {
@@ -138,6 +108,29 @@ function AuthenticatedHome({
       }
     }
   }, []);
+
+  return { selected, setSelected, handleSelectEmail };
+}
+
+interface EmailFetchState {
+  emails: Email[];
+  loading: boolean;
+  error: string | null;
+  nextPageToken: string | null;
+}
+
+function useEmailFetch(
+  view: View,
+  search: string
+): EmailFetchState & {
+  fetchEmails: (pageToken?: string) => void;
+} {
+  const [emails, setEmails] = useState<Email[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const fetchingRef = useRef(false);
+  const fetchSeqRef = useRef(0);
 
   const fetchEmails = useCallback(
     async (pageToken?: string) => {
@@ -154,12 +147,10 @@ function AuthenticatedHome({
         if (pageToken) params.set('pageToken', pageToken);
 
         const res = await fetch(`/api/emails?${params}`);
-
         if (res.status === 401) {
           signOut();
           return;
         }
-
         if (!res.ok) {
           const text = await res.text();
           console.error('Email fetch error:', res.status, text);
@@ -168,15 +159,11 @@ function AuthenticatedHome({
         }
 
         const data = await res.json();
-
         if (data.error) {
           console.error('Email fetch error:', data.error);
           setError(data.error);
           return;
         }
-
-        // Ignore stale responses if the user changed view/search and a
-        // newer request has already started.
         if (requestSeq !== fetchSeqRef.current) return;
 
         if (pageToken) {
@@ -198,58 +185,265 @@ function AuthenticatedHome({
     [view, search]
   );
 
-  const usesCachedInbox = view === 'inbox' && !search;
+  return { emails, loading, error, nextPageToken, fetchEmails };
+}
+
+function ErrorBanner({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <div className="flex flex-1 items-center justify-center">
+      <div className="max-w-sm space-y-4 px-6 text-center">
+        <p className="text-sm text-[var(--text-muted)]">{error}</p>
+        <button
+          onClick={onRetry}
+          className="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--accent-hover)]"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InboxView(props: {
+  error: string | null;
+  selected: Email | null;
+  emails: Email[];
+  loading: boolean;
+  search: string;
+  view: View;
+  onSearchChange: (s: string) => void;
+  onSelect: (e: Email | null) => void;
+  onBack: () => void;
+  onRefresh: () => void;
+  onLoadMore?: () => void;
+  isPrimaryView: boolean;
+}) {
+  const {
+    error,
+    selected,
+    emails,
+    loading,
+    search,
+    view,
+    onSearchChange,
+    onSelect,
+    onBack,
+    onRefresh,
+    onLoadMore,
+    isPrimaryView,
+  } = props;
+  if (error) return <ErrorBanner error={error} onRetry={onRefresh} />;
+  return (
+    <WorkSurface
+      hasSelection={Boolean(selected)}
+      list={
+        <EmailList
+          emails={emails}
+          loading={loading}
+          search={search}
+          label={view}
+          selectedId={selected?.id}
+          onSearchChange={onSearchChange}
+          onSelect={onSelect}
+          onRefresh={onRefresh}
+          onLoadMore={onLoadMore}
+          primary={isPrimaryView}
+        />
+      }
+      detail={selected ? <EmailDetail email={selected} onBack={onBack} showBack /> : null}
+    />
+  );
+}
+
+function MainViewRouter(props: {
+  view: View;
+  selected: Email | null;
+  error: string | null;
+  emails: Email[];
+  loading: boolean;
+  search: string;
+  onSearchChange: (s: string) => void;
+  onSelect: (e: Email | null) => void;
+  onBack: () => void;
+  onRefresh: () => void;
+  onLoadMore?: () => void;
+  openDigestContext: (kind: 'sender' | 'thread', value: string, subject?: string) => void;
+  isPrimaryView: boolean;
+}) {
+  const {
+    view,
+    selected,
+    error,
+    emails,
+    loading,
+    search,
+    onSearchChange,
+    onSelect,
+    onBack,
+    onRefresh,
+    onLoadMore,
+    openDigestContext,
+    isPrimaryView,
+  } = props;
+
+  if (view === 'subscriptions') return <Subscriptions />;
+  if (view === 'analytics') return <Analytics />;
+  if (view === 'insights') {
+    return (
+      <InsightsView
+        onOpenSender={(email) => openDigestContext('sender', email)}
+        onOpenThread={(_threadId, subject) => openDigestContext('thread', '', subject)}
+      />
+    );
+  }
+  if (view === 'sent') {
+    return (
+      <WorkSurface
+        hasSelection={Boolean(selected)}
+        list={<SentMailView selectedId={selected?.id} onSelect={onSelect} />}
+        detail={selected ? <EmailDetail email={selected} onBack={onBack} showBack /> : null}
+      />
+    );
+  }
+  if (view === 'inbox') {
+    return (
+      <InboxView
+        error={error}
+        selected={selected}
+        emails={emails}
+        loading={loading}
+        search={search}
+        view={view}
+        onSearchChange={onSearchChange}
+        onSelect={onSelect}
+        onBack={onBack}
+        onRefresh={onRefresh}
+        onLoadMore={onLoadMore}
+        isPrimaryView={isPrimaryView}
+      />
+    );
+  }
+  if (selected) return <EmailDetail email={selected} onBack={onBack} />;
+  if (view === 'search') return <SemanticSearch onSelect={onSelect} />;
+  if (error) return <ErrorBanner error={error} onRetry={onRefresh} />;
+  return (
+    <EmailList
+      emails={emails}
+      loading={loading}
+      search={search}
+      label={view}
+      selectedId={null}
+      onSearchChange={onSearchChange}
+      onSelect={onSelect}
+      onRefresh={onRefresh}
+      onLoadMore={onLoadMore}
+      primary={isPrimaryView}
+    />
+  );
+}
+
+function useViewSync() {
+  const [view, setViewState] = useState<View>('inbox');
 
   useEffect(() => {
-    setSelected(null);
+    setViewState(getViewFromHash());
+    const onHashChange = () => setViewState(getViewFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
-    if (view === 'sent') {
-      setEmails([]);
-      setLoading(false);
-      setError(null);
-      setNextPageToken(null);
-      return;
-    }
+  const setView = useCallback((v: View) => {
+    setViewState(v);
+    window.location.hash = v;
+  }, []);
 
-    if (usesCachedInbox) {
-      setEmails(mailbox.emails);
-      setLoading(!mailbox.ready || (mailbox.syncing && mailbox.emails.length === 0));
-      setError(null);
-      setNextPageToken(null);
-      return;
-    }
+  return { view, setView };
+}
 
-    if (LABEL_MAP[view]) fetchEmails();
-  }, [view, search, usesCachedInbox, mailbox.emails, mailbox.ready, mailbox.syncing, fetchEmails]);
-
-  const openDigestContext = useCallback(
-    (kind: 'sender' | 'thread', value: string, subject?: string) => {
-      if (kind === 'sender') {
-        setSearch(`from:${value}`);
-      } else {
-        setSearch(subject ? `subject:"${subject.replace(/"/g, '')}"` : '');
-      }
-      setSelected(null);
-      setView('inbox');
-    },
-    [setView]
-  );
-
-  const refreshMailboxView = useCallback(() => {
-    if (usesCachedInbox) {
-      void mailbox.syncInbox();
-    } else {
-      fetchEmails();
-    }
-  }, [usesCachedInbox, mailbox, fetchEmails]);
+function useInboxState(
+  view: View,
+  search: string,
+  mailbox: ReturnType<typeof useMailboxStore>,
+  fetchState: ReturnType<typeof useEmailFetch>
+) {
+  const usesCachedInbox = view === 'inbox' && !search;
+  const inboxEmails = usesCachedInbox ? mailbox.emails : fetchState.emails;
+  const inboxLoading = usesCachedInbox
+    ? !mailbox.ready || (mailbox.syncing && mailbox.emails.length === 0)
+    : fetchState.loading;
+  const inboxError = usesCachedInbox ? null : fetchState.error;
 
   const loadMoreInbox = useCallback(() => {
     if (usesCachedInbox && !mailbox.inboxExhausted) {
       void mailbox.ensureInboxCount(mailbox.total + 100);
       return;
     }
-    if (nextPageToken) fetchEmails(nextPageToken);
-  }, [usesCachedInbox, mailbox, nextPageToken, fetchEmails]);
+    if (fetchState.nextPageToken) fetchState.fetchEmails(fetchState.nextPageToken);
+  }, [usesCachedInbox, mailbox, fetchState]);
+
+  const inboxLoadMore = usesCachedInbox
+    ? mailbox.inboxExhausted
+      ? undefined
+      : loadMoreInbox
+    : fetchState.nextPageToken
+      ? loadMoreInbox
+      : undefined;
+
+  const refreshMailboxView = useCallback(() => {
+    if (usesCachedInbox) void mailbox.syncInbox();
+    else fetchState.fetchEmails();
+  }, [usesCachedInbox, mailbox, fetchState]);
+
+  return {
+    usesCachedInbox,
+    inboxEmails,
+    inboxLoading,
+    inboxError,
+    inboxLoadMore,
+    refreshMailboxView,
+  };
+}
+
+function AuthenticatedHome({
+  sessionData,
+}: {
+  sessionData: { user?: { id: string; name?: string; image?: string } };
+}) {
+  const mailbox = useMailboxStore();
+  const { view, setView } = useViewSync();
+  const [search, setSearch] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { selected, setSelected, handleSelectEmail } = useEmailSelection();
+  const fetchState = useEmailFetch(view, search);
+  useSessionTracking(sessionData?.user?.id);
+  const {
+    usesCachedInbox,
+    inboxEmails,
+    inboxLoading,
+    inboxError,
+    inboxLoadMore,
+    refreshMailboxView,
+  } = useInboxState(view, search, mailbox, fetchState);
+
+  useEffect(() => {
+    setSelected(null);
+    if (view === 'sent') return;
+    if (usesCachedInbox) return;
+    if (LABEL_MAP[view]) fetchState.fetchEmails();
+  }, [view, search, usesCachedInbox, fetchState, setSelected]);
+
+  const openDigestContext = useCallback(
+    (kind: 'sender' | 'thread', value: string, subject?: string) => {
+      if (kind === 'sender') {
+        setSearch(`from:${value}`);
+      } else {
+        setSearch(subject ? `subject:"${subject.replace(QUOTE_RE, '')}"` : '');
+      }
+      setSelected(null);
+      setView('inbox');
+    },
+    [setView, setSelected]
+  );
 
   const isPrimaryView = view === 'inbox';
   const viewLabel = view.charAt(0).toUpperCase() + view.slice(1);
@@ -267,7 +461,6 @@ function AuthenticatedHome({
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Mobile header — hamburger nav below md. */}
         <header className="glass-panel flex items-center gap-3 border-b px-3 py-2.5 md:hidden">
           <MobileMenuButton onClick={() => setMobileMenuOpen(true)} label={viewLabel} />
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent)] text-xs font-bold text-[var(--accent-fg)]">
@@ -277,108 +470,23 @@ function AuthenticatedHome({
         </header>
 
         <main className="flex flex-1 overflow-hidden">
-          {view === 'subscriptions' ? (
-            <Subscriptions />
-          ) : view === 'analytics' ? (
-            <Analytics />
-          ) : view === 'insights' ? (
-            <InsightsView
-              onOpenSender={(email) => openDigestContext('sender', email)}
-              onOpenThread={(_threadId, subject) => openDigestContext('thread', '', subject)}
-            />
-          ) : view === 'sent' ? (
-            <WorkSurface
-              hasSelection={Boolean(selected)}
-              list={<SentMailView selectedId={selected?.id} onSelect={handleSelectEmail} />}
-              detail={
-                selected ? (
-                  <EmailDetail email={selected} onBack={() => setSelected(null)} showBack />
-                ) : null
-              }
-            />
-          ) : view === 'inbox' ? (
-            error ? (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="max-w-sm space-y-4 px-6 text-center">
-                  <p className="text-sm text-[var(--text-muted)]">{error}</p>
-                  <button
-                    onClick={refreshMailboxView}
-                    className="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--accent-hover)]"
-                  >
-                    Try again
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <WorkSurface
-                hasSelection={Boolean(selected)}
-                list={
-                  <EmailList
-                    emails={emails}
-                    loading={loading}
-                    search={search}
-                    label={view}
-                    selectedId={selected?.id}
-                    onSearchChange={setSearch}
-                    onSelect={handleSelectEmail}
-                    onRefresh={refreshMailboxView}
-                    onLoadMore={
-                      usesCachedInbox
-                        ? mailbox.inboxExhausted
-                          ? undefined
-                          : loadMoreInbox
-                        : nextPageToken
-                          ? loadMoreInbox
-                          : undefined
-                    }
-                    primary={isPrimaryView}
-                  />
-                }
-                detail={
-                  selected ? (
-                    <EmailDetail email={selected} onBack={() => setSelected(null)} showBack />
-                  ) : null
-                }
-              />
-            )
-          ) : selected ? (
-            <EmailDetail email={selected} onBack={() => setSelected(null)} />
-          ) : view === 'search' ? (
-            <SemanticSearch onSelect={handleSelectEmail} />
-          ) : error ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-4 max-w-sm px-6">
-                <p className="text-sm text-[var(--text-muted)]">{error}</p>
-                <button
-                  onClick={refreshMailboxView}
-                  className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
-                >
-                  Try again
-                </button>
-              </div>
-            </div>
-          ) : (
-            <EmailList
-              emails={emails}
-              loading={loading}
-              search={search}
-              label={view}
-              selectedId={null}
-              onSearchChange={setSearch}
-              onSelect={handleSelectEmail}
-              onRefresh={refreshMailboxView}
-              onLoadMore={nextPageToken ? loadMoreInbox : undefined}
-              primary={isPrimaryView}
-            />
-          )}
+          <MainViewRouter
+            view={view}
+            selected={selected}
+            error={inboxError}
+            emails={inboxEmails}
+            loading={inboxLoading}
+            search={search}
+            onSearchChange={setSearch}
+            onSelect={handleSelectEmail}
+            onBack={() => setSelected(null)}
+            onRefresh={refreshMailboxView}
+            onLoadMore={inboxLoadMore}
+            openDigestContext={openDigestContext}
+            isPrimaryView={isPrimaryView}
+          />
         </main>
       </div>
     </div>
   );
 }
-
-// The previous embedded `Landing` marketing copy lived here. It now
-// ships as a static Astro page at landing-astro/src/pages/index.astro,
-// overlaid onto .open-next/assets/index.html so the LCP path doesn't
-// pay the React-hydration cost. Unauthenticated visits to /app
-// redirect to / (see early-return above).

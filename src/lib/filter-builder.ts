@@ -105,26 +105,29 @@ export function parseSenderAddress(from: string) {
   return { senderEmail, domain, displayName };
 }
 
+function isNotificationSender(sender: string, text: string): boolean {
+  return (
+    sender.includes('no-reply') ||
+    sender.includes('noreply') ||
+    matchesAny(text, NOTIFICATION_PATTERNS)
+  );
+}
+
 function categoryForEmail(email: Email): FilterCategory | null {
   const text = textFor(email);
   const sender = parseSenderAddress(email.from).senderEmail;
 
   if (email.unsubscribeLink || matchesAny(text, NEWSLETTER_PATTERNS)) return 'newsletter';
   if (matchesAny(text, RECEIPT_PATTERNS)) return 'receipt';
-  if (
-    sender.includes('no-reply') ||
-    sender.includes('noreply') ||
-    matchesAny(text, NOTIFICATION_PATTERNS)
-  ) {
-    return 'notification';
-  }
+  if (isNotificationSender(sender, text)) return 'notification';
   if (matchesAny(text, FOLLOWUP_PATTERNS)) return 'followup';
 
   return null;
 }
 
 function escapeQueryTerm(value: string) {
-  return value.replace(/"/g, '\\"');
+  const dq = String.fromCharCode(34);
+  return value.replaceAll(dq, String.fromCharCode(92, 34));
 }
 
 function escapeXml(value: string) {
@@ -271,13 +274,7 @@ export function archiveImpactLabel(suggestion: GmailFilterSuggestion): string {
 /** Human-readable summary for the selected recipe set. */
 export function buildSelectedRecipeSummary(suggestions: GmailFilterSuggestion[]): string {
   if (suggestions.length === 0) return 'No recipes selected.';
-  const byCategory = new Map<FilterCategory, number>();
-  for (const s of suggestions) {
-    byCategory.set(s.category, (byCategory.get(s.category) ?? 0) + 1);
-  }
-  const categoryBits = [...byCategory.entries()]
-    .map(([cat, n]) => `${n} ${CATEGORY_META[cat].label.replace('Kinetic/', '')}`)
-    .join(', ');
+  const categoryBits = summarizeCategoryCounts(suggestions);
   const archiveCount = suggestions.filter((s) => s.shouldArchive).length;
   return [
     `${suggestions.length} filter${suggestions.length === 1 ? '' : 's'} selected (${categoryBits}).`,
@@ -286,6 +283,16 @@ export function buildSelectedRecipeSummary(suggestions: GmailFilterSuggestion[])
       : 'All selected filters keep mail in the inbox.',
     'Paste the XML into Gmail Settings → Filters and Blocked Addresses → Import filters.',
   ].join(' ');
+}
+
+function summarizeCategoryCounts(suggestions: GmailFilterSuggestion[]): string {
+  const byCategory = new Map<FilterCategory, number>();
+  for (const s of suggestions) {
+    byCategory.set(s.category, (byCategory.get(s.category) ?? 0) + 1);
+  }
+  return [...byCategory.entries()]
+    .map(([cat, n]) => `${n} ${CATEGORY_META[cat].label.replace('Kinetic/', '')}`)
+    .join(', ');
 }
 
 /** Short explanation string for the export preview panel. */

@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import type { Email } from '@/lib/gmail';
 import {
@@ -56,7 +57,57 @@ export function useMailboxStore() {
   return ctx;
 }
 
-export function MailboxStoreProvider({ children }: { children: ReactNode }) {
+async function runLockedOperation(
+  mountedRef: RefObject<boolean>,
+  syncLockRef: RefObject<boolean>,
+  setActive: (v: boolean) => void,
+  setProgress: (s: string) => void,
+  startMsg: string,
+  errorLabel: string,
+  operation: () => Promise<unknown>,
+  refresh: () => Promise<void>
+) {
+  if (syncLockRef.current) return;
+  syncLockRef.current = true;
+  setActive(true);
+  setProgress(startMsg);
+  try {
+    await operation();
+    if (mountedRef.current) {
+      setProgress('');
+      await refresh();
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : errorLabel;
+    if (mountedRef.current) setProgress(`Error: ${message}`);
+    throw err;
+  } finally {
+    syncLockRef.current = false;
+    if (mountedRef.current) setActive(false);
+  }
+}
+
+interface MailboxState {
+  emails: StoredEmail[];
+  total: number;
+  indexed: number;
+  pendingIndex: number;
+  indexing: boolean;
+  syncing: boolean;
+  progress: string;
+  lastSyncedAt: string | null;
+  inboxExhausted: boolean;
+  subscriptionSenders: Email[];
+  ready: boolean;
+  mountedRef: RefObject<boolean>;
+  syncLockRef: RefObject<boolean>;
+  setSyncing: (v: boolean) => void;
+  setIndexing: (v: boolean) => void;
+  setProgress: (s: string) => void;
+  refresh: () => Promise<void>;
+}
+
+function useMailboxState(): MailboxState {
   const [emails, setEmails] = useState<StoredEmail[]>([]);
   const [total, setTotal] = useState(0);
   const [indexed, setIndexed] = useState(0);
@@ -91,60 +142,71 @@ export function MailboxStoreProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
+  return {
+    emails,
+    total,
+    indexed,
+    pendingIndex,
+    indexing,
+    syncing,
+    progress,
+    lastSyncedAt,
+    inboxExhausted,
+    subscriptionSenders,
+    ready,
+    mountedRef,
+    syncLockRef,
+    setSyncing,
+    setIndexing,
+    setProgress,
+    refresh,
+  };
+}
+
+function useSyncOperations(state: MailboxState) {
+  const { mountedRef, syncLockRef, setSyncing, setIndexing, setProgress, refresh } = state;
+
   const runSync = useCallback(
-    async (target: number, metadataOnly = false) => {
-      if (syncLockRef.current) return;
-      syncLockRef.current = true;
-      setSyncing(true);
-      setProgress('Syncing inbox…');
-      try {
-        await ensureInboxEmails({
-          target,
-          metadataOnly,
-          onProgress: (message) => {
-            if (mountedRef.current) setProgress(message);
-          },
-        });
-        if (mountedRef.current) {
-          setProgress('');
-          await refresh();
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Sync failed';
-        if (mountedRef.current) setProgress(`Error: ${message}`);
-        throw err;
-      } finally {
-        syncLockRef.current = false;
-        if (mountedRef.current) setSyncing(false);
-      }
-    },
-    [refresh]
+    (target: number, metadataOnly = false) =>
+      runLockedOperation(
+        mountedRef,
+        syncLockRef,
+        setSyncing,
+        setProgress,
+        'Syncing inbox…',
+        'Sync failed',
+        () =>
+          ensureInboxEmails({
+            target,
+            metadataOnly,
+            onProgress: (m) => {
+              if (mountedRef.current) setProgress(m);
+            },
+          }),
+        refresh
+      ),
+    [refresh, setProgress, setSyncing, syncLockRef, mountedRef]
   );
 
-  const runRefreshHead = useCallback(async () => {
-    if (syncLockRef.current) return;
-    syncLockRef.current = true;
-    setSyncing(true);
-    setProgress('Checking for new mail…');
-    try {
-      await refreshInboxHead({
-        onProgress: (message) => {
-          if (mountedRef.current) setProgress(message);
-        },
-      });
-      if (mountedRef.current) {
-        setProgress('');
-        await refresh();
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Refresh failed';
-      if (mountedRef.current) setProgress(`Error: ${message}`);
-      throw err;
-    } finally {
-      syncLockRef.current = false;
-      if (mountedRef.current) setSyncing(false);
-    }
-  }, [refresh]);
+  const runRefreshHead = useCallback(
+    () =>
+      runLockedOperation(
+        mountedRef,
+        syncLockRef,
+        setSyncing,
+        setProgress,
+        'Checking for new mail…',
+        'Refresh failed',
+        () =>
+          refreshInboxHead({
+            onProgress: (m) => {
+              if (mountedRef.current) setProgress(m);
+            },
+          }),
+        refresh
+      ),
+    [refresh, setProgress, setSyncing, syncLockRef, mountedRef]
+  );
 
   const syncInbox = useCallback(
     async (opts?: { target?: number; metadataOnly?: boolean }) => {
@@ -157,32 +219,38 @@ export function MailboxStoreProvider({ children }: { children: ReactNode }) {
     await runRefreshHead();
   }, [runRefreshHead]);
 
-  const indexForSearch = useCallback(async () => {
-    if (syncLockRef.current) return;
-    syncLockRef.current = true;
-    setIndexing(true);
-    setProgress('Preparing search index…');
-    try {
-      await indexEmailsForSearch({
-        limit: SEMANTIC_INDEX_LIMIT,
-        onProgress: (message) => {
-          if (mountedRef.current) setProgress(message);
-        },
-      });
-      if (mountedRef.current) {
-        setProgress('');
-        await refresh();
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Indexing failed';
-      if (mountedRef.current) setProgress(`Error: ${message}`);
-      throw err;
-    } finally {
-      syncLockRef.current = false;
-      if (mountedRef.current) setIndexing(false);
-    }
-  }, [refresh]);
+  const indexForSearch = useCallback(
+    () =>
+      runLockedOperation(
+        mountedRef,
+        syncLockRef,
+        setIndexing,
+        setProgress,
+        'Preparing search index…',
+        'Indexing failed',
+        () =>
+          indexEmailsForSearch({
+            limit: SEMANTIC_INDEX_LIMIT,
+            onProgress: (m) => {
+              if (mountedRef.current) setProgress(m);
+            },
+          }),
+        refresh
+      ),
+    [refresh, setProgress, setIndexing, syncLockRef, mountedRef]
+  );
 
+  return { runSync, runRefreshHead, syncInbox, refreshInbox, indexForSearch };
+}
+
+function useInboxQueries(
+  emails: StoredEmail[],
+  refresh: () => Promise<void>,
+  runSync: (target: number, metadataOnly?: boolean) => Promise<void>,
+  syncInbox: () => Promise<void>,
+  refreshInbox: () => Promise<void>,
+  mountedRef: RefObject<boolean>
+) {
   const ensureFreshInbox = useCallback(async () => {
     const meta = await getInboxSyncMeta();
     const count = await getEmailCount();
@@ -207,78 +275,75 @@ export function MailboxStoreProvider({ children }: { children: ReactNode }) {
       if (mountedRef.current) await refresh();
       return sorted.slice(0, target);
     },
-    [refresh, runSync]
+    [refresh, runSync, mountedRef]
   );
 
   const getInboxSlice = useCallback((limit: number) => emails.slice(0, limit), [emails]);
 
-  const isStale = useMemo(() => isInboxStale(lastSyncedAt), [lastSyncedAt]);
+  return { ensureFreshInbox, ensureInboxCount, getInboxSlice };
+}
+
+function useMailboxSync(): MailboxStoreContextValue {
+  const state = useMailboxState();
+  const ops = useSyncOperations(state);
+  const queries = useInboxQueries(
+    state.emails,
+    state.refresh,
+    ops.runSync,
+    ops.syncInbox,
+    ops.refreshInbox,
+    state.mountedRef
+  );
+
+  const isStale = useMemo(() => isInboxStale(state.lastSyncedAt), [state.lastSyncedAt]);
 
   useEffect(() => {
-    mountedRef.current = true;
+    state.mountedRef.current = true;
     void (async () => {
       const [count, meta] = await Promise.all([getEmailCount(), getInboxSyncMeta()]);
-      await refresh();
-
+      await state.refresh();
       try {
         if (count === 0) {
-          await runSync(DEFAULT_INBOX_SYNC);
+          await ops.runSync(DEFAULT_INBOX_SYNC);
         } else if (isInboxStale(meta.lastSyncedAt)) {
-          await runRefreshHead();
+          await ops.runRefreshHead();
         }
       } catch {
         // Background sync may fail offline — views still render cached state.
       }
     })();
     return () => {
-      mountedRef.current = false;
+      state.mountedRef.current = false;
     };
-  }, [refresh, runRefreshHead, runSync]);
+  }, [state.refresh, ops.runRefreshHead, ops.runSync, state.mountedRef]);
 
-  const value = useMemo(
+  return useMemo(
     () => ({
-      emails,
-      total,
-      indexed,
-      pendingIndex,
-      indexing,
-      syncing,
-      progress,
-      lastSyncedAt,
+      emails: state.emails,
+      total: state.total,
+      indexed: state.indexed,
+      pendingIndex: state.pendingIndex,
+      indexing: state.indexing,
+      syncing: state.syncing,
+      progress: state.progress,
+      lastSyncedAt: state.lastSyncedAt,
       isStale,
-      inboxExhausted,
-      subscriptionSenders,
-      ready,
-      refresh,
-      syncInbox,
-      indexForSearch,
-      refreshInbox,
-      ensureFreshInbox,
-      ensureInboxCount,
-      getInboxSlice,
+      inboxExhausted: state.inboxExhausted,
+      subscriptionSenders: state.subscriptionSenders,
+      ready: state.ready,
+      refresh: state.refresh,
+      syncInbox: ops.syncInbox,
+      indexForSearch: ops.indexForSearch,
+      refreshInbox: ops.refreshInbox,
+      ensureFreshInbox: queries.ensureFreshInbox,
+      ensureInboxCount: queries.ensureInboxCount,
+      getInboxSlice: queries.getInboxSlice,
     }),
-    [
-      emails,
-      total,
-      indexed,
-      pendingIndex,
-      indexing,
-      syncing,
-      progress,
-      lastSyncedAt,
-      isStale,
-      inboxExhausted,
-      subscriptionSenders,
-      ready,
-      refresh,
-      syncInbox,
-      indexForSearch,
-      refreshInbox,
-      ensureFreshInbox,
-      ensureInboxCount,
-      getInboxSlice,
-    ]
+    [state, ops, queries, isStale]
   );
+}
 
+export function MailboxStoreProvider({ children }: { children: ReactNode }) {
+  const value = useMailboxSync();
   return <MailboxStoreContext.Provider value={value}>{children}</MailboxStoreContext.Provider>;
 }

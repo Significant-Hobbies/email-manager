@@ -16,26 +16,16 @@ interface Props {
   showBack?: boolean;
 }
 
-export function EmailDetail({ email, onBack, showBack = true }: Props) {
+function EmailDetailToolbar({
+  email,
+  onBack,
+  showBack,
+}: {
+  email: Email;
+  onBack: () => void;
+  showBack: boolean;
+}) {
   const [acting, setActing] = useState(false);
-
-  const sentAt = useMemo(() => formatEmailDate(email.date), [email.date]);
-  const emailDocument = useMemo(
-    () => wrapEmailHtml(email.body, email.snippet),
-    [email.body, email.snippet]
-  );
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const isTyping =
-        document.activeElement instanceof HTMLInputElement ||
-        document.activeElement instanceof HTMLTextAreaElement;
-      if (isTyping) return;
-      if (e.key === 'Escape' && showBack) onBack();
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onBack, showBack]);
 
   async function handleCopySubject() {
     try {
@@ -61,40 +51,64 @@ export function EmailDetail({ email, onBack, showBack = true }: Props) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--bg-subtle)]/30">
-      <div className="glass-panel flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-3">
-        {showBack ? (
-          <Button type="button" variant="ghost" size="sm" onClick={onBack} className="md:hidden">
-            <ArrowLeft className="h-4 w-4" aria-hidden />
-            Back
-          </Button>
-        ) : null}
-        <div className="flex-1" />
-        <Button type="button" variant="secondary" size="sm" onClick={handleCopySubject}>
-          <Copy className="h-3.5 w-3.5" aria-hidden />
-          Copy brief
+    <div className="glass-panel flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-3">
+      {showBack ? (
+        <Button type="button" variant="ghost" size="sm" onClick={onBack} className="md:hidden">
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Back
         </Button>
-        {email.unsubscribeLink ? (
-          email.unsubscribePost ? (
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={acting}
-              onClick={handleOneClickUnsubscribe}
-            >
+      ) : null}
+      <div className="flex-1" />
+      <Button type="button" variant="secondary" size="sm" onClick={handleCopySubject}>
+        <Copy className="h-3.5 w-3.5" aria-hidden />
+        Copy brief
+      </Button>
+      {email.unsubscribeLink ? (
+        email.unsubscribePost ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={acting}
+            onClick={handleOneClickUnsubscribe}
+          >
+            Unsubscribe
+          </Button>
+        ) : (
+          <Button type="button" variant="destructive" size="sm" asChild>
+            <a href={email.unsubscribeLink} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
               Unsubscribe
-            </Button>
-          ) : (
-            <Button type="button" variant="destructive" size="sm" asChild>
-              <a href={email.unsubscribeLink} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                Unsubscribe
-              </a>
-            </Button>
-          )
-        ) : null}
-      </div>
+            </a>
+          </Button>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+export function EmailDetail({ email, onBack, showBack = true }: Props) {
+  const sentAt = useMemo(() => formatEmailDate(email.date), [email.date]);
+  const emailDocument = useMemo(
+    () => wrapEmailHtml(email.body, email.snippet),
+    [email.body, email.snippet]
+  );
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const isTyping =
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement;
+      if (isTyping) return;
+      if (e.key === 'Escape' && showBack) onBack();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onBack, showBack]);
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--bg-subtle)]/30">
+      <EmailDetailToolbar email={email} onBack={onBack} showBack={showBack} />
 
       <div className="shrink-0 space-y-4 border-b border-[var(--border)]/80 px-5 py-5">
         <div className="flex flex-wrap items-center gap-2">

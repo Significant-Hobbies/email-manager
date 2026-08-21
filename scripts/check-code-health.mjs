@@ -52,7 +52,7 @@ function checkComplexity() {
     maxParams: Math.max(...rows.map((row) => row[3])),
   };
   // Ratcheted legacy debt: https://github.com/Significant-Hobbies/email-manager/issues/32
-  const baseline = { violations: 14, maxCcn: 32, maxLength: 294, maxParams: 11 };
+  const baseline = { violations: 0, maxCcn: 15, maxLength: 100, maxParams: 6 };
   const regressions = Object.entries(baseline).filter(([key, maximum]) => observed[key] > maximum);
   console.log(
     `Complexity: ${observed.functions} functions, ${observed.nloc} NLOC, ` +

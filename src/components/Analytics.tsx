@@ -41,6 +41,184 @@ function formatDateRange(oldest: string, newest: string): string {
   return `~${diffYears} years (${fmtDate(o)} – ${fmtDate(n)})`;
 }
 
+const ANGLE_BRACKET_RE = new RegExp('<([^>]+)>');
+const STRIP_ANGLE_BRACKETS_RE = new RegExp('<[^>]+>');
+
+function getEmailsForSenderFromList(emails: Email[], senderEmail: string): Email[] {
+  return emails
+    .filter((e) => {
+      const m = e.from.match(ANGLE_BRACKET_RE);
+      const addr = (m?.[1] ?? e.from).toLowerCase().trim();
+      return addr === senderEmail;
+    })
+    .slice(0, 20);
+}
+
+interface ComputedStats {
+  stats: SenderStat[];
+  totalEmails: number;
+  dateRange: string;
+}
+
+function computeSenderStats(emails: Email[]): ComputedStats {
+  const totalEmails = emails.length;
+  let dateRange = '';
+
+  if (emails.length > 0) {
+    const dates = emails
+      .map((e) => new Date(e.date).getTime())
+      .filter((t) => !Number.isNaN(t))
+      .sort((a, b) => a - b);
+    if (dates.length > 0) {
+      dateRange = formatDateRange(
+        new Date(dates[0]).toISOString(),
+        new Date(dates[dates.length - 1]).toISOString()
+      );
+    }
+  }
+
+  const senderMap = new Map<string, SenderStat>();
+  for (const email of emails) {
+    const emailMatch = email.from.match(ANGLE_BRACKET_RE);
+    const senderEmail = (emailMatch?.[1] ?? email.from).toLowerCase().trim();
+    const domainMatch = senderEmail.match(/@(.+)/);
+    const domain = domainMatch?.[1] ?? 'unknown';
+    const displayName = email.from.replace(STRIP_ANGLE_BRACKETS_RE, '').trim() || senderEmail;
+
+    const existing = senderMap.get(senderEmail);
+    if (existing) {
+      existing.count++;
+      if (!existing.unsubscribeLink && email.unsubscribeLink) {
+        existing.unsubscribeLink = email.unsubscribeLink;
+        existing.unsubscribePost = email.unsubscribePost;
+      }
+    } else {
+      senderMap.set(senderEmail, {
+        email: senderEmail,
+        domain,
+        displayName,
+        count: 1,
+        unsubscribeLink: email.unsubscribeLink,
+        unsubscribePost: email.unsubscribePost,
+      });
+    }
+  }
+
+  return {
+    stats: Array.from(senderMap.values()).sort((a, b) => b.count - a.count),
+    totalEmails,
+    dateRange,
+  };
+}
+
+function SenderRow({
+  sender,
+  maxCount,
+  expanded,
+  onToggle,
+  senderEmails,
+}: {
+  sender: SenderStat;
+  maxCount: number;
+  expanded: boolean;
+  onToggle: () => void;
+  senderEmails: Email[];
+}) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--bg-elevated)] transition cursor-pointer text-left"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{sender.displayName}</div>
+          <div className="text-xs text-[var(--text-muted)] truncate">{sender.email}</div>
+        </div>
+        <div className="shrink-0 flex items-center gap-3">
+          <div className="w-24 h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full"
+              style={{ width: `${(sender.count / maxCount) * 100}%` }}
+            />
+          </div>
+          <span className="text-sm font-medium tabular-nums w-8 text-right">{sender.count}</span>
+        </div>
+      </button>
+      {expanded ? (
+        <div className="px-4 pb-3 space-y-1 bg-[var(--bg-elevated)]/50">
+          <div className="flex items-center justify-between py-1">
+            <span className="text-xs text-[var(--text-muted)]">Recent messages</span>
+            {sender.unsubscribeLink && (
+              <a
+                href={sender.unsubscribeLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--danger)] hover:underline"
+              >
+                Unsubscribe
+              </a>
+            )}
+          </div>
+          {senderEmails.map((email) => (
+            <EmailHoverPreview key={email.id} email={email}>
+              <div className="text-xs py-1 truncate">
+                <span className="text-[var(--text-muted)]">{formatEmailDateShort(email.date)}</span>{' '}
+                {email.subject}
+              </div>
+            </EmailHoverPreview>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function AnalyticsHeader({
+  totalEmails,
+  dateRange,
+  bucket,
+  setBucket,
+  statusLine,
+}: {
+  totalEmails: number;
+  dateRange: string;
+  bucket: number;
+  setBucket: (v: number) => void;
+  statusLine: string;
+}) {
+  return (
+    <div className="p-4 border-b border-[var(--border)]">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold">Analytics</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            Sender frequency from your shared local inbox index
+            {totalEmails > 0 && dateRange ? ` · ${dateRange}` : ''}
+          </p>
+        </div>
+        <div className="flex shrink-0 gap-1">
+          {BUCKET_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setBucket(opt.value)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                bucket === opt.value
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)]'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {statusLine ? <p className="mt-2 text-xs text-[var(--text-muted)]">{statusLine}</p> : null}
+    </div>
+  );
+}
+
 export function Analytics() {
   const { ensureInboxCount, getInboxSlice, syncing, progress: storeProgress } = useMailboxStore();
   const [stats, setStats] = useState<SenderStat[]>([]);
@@ -53,54 +231,11 @@ export function Analytics() {
   const [bucket, setBucket] = useState(100);
 
   const computeStats = useCallback((emails: Email[]) => {
+    const result = computeSenderStats(emails);
     setSampleEmails(emails);
-    setTotalEmails(emails.length);
-
-    if (emails.length > 0) {
-      const dates = emails
-        .map((e) => new Date(e.date).getTime())
-        .filter((t) => !Number.isNaN(t))
-        .sort((a, b) => a - b);
-      if (dates.length > 0) {
-        setDateRange(
-          formatDateRange(
-            new Date(dates[0]).toISOString(),
-            new Date(dates[dates.length - 1]).toISOString()
-          )
-        );
-      }
-    } else {
-      setDateRange('');
-    }
-
-    const senderMap = new Map<string, SenderStat>();
-    for (const email of emails) {
-      const emailMatch = email.from.match(/<([^>]+)>/);
-      const senderEmail = (emailMatch?.[1] ?? email.from).toLowerCase().trim();
-      const domainMatch = senderEmail.match(/@(.+)/);
-      const domain = domainMatch?.[1] ?? 'unknown';
-      const displayName = email.from.replace(/<[^>]+>/, '').trim() || senderEmail;
-
-      const existing = senderMap.get(senderEmail);
-      if (existing) {
-        existing.count++;
-        if (!existing.unsubscribeLink && email.unsubscribeLink) {
-          existing.unsubscribeLink = email.unsubscribeLink;
-          existing.unsubscribePost = email.unsubscribePost;
-        }
-      } else {
-        senderMap.set(senderEmail, {
-          email: senderEmail,
-          domain,
-          displayName,
-          count: 1,
-          unsubscribeLink: email.unsubscribeLink,
-          unsubscribePost: email.unsubscribePost,
-        });
-      }
-    }
-
-    setStats(Array.from(senderMap.values()).sort((a, b) => b.count - a.count));
+    setTotalEmails(result.totalEmails);
+    setDateRange(result.dateRange);
+    setStats(result.stats);
     setLoading(false);
     setProgress('');
   }, []);
@@ -137,66 +272,30 @@ export function Analytics() {
 
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  function getEmailsForSender(senderEmail: string): Email[] {
-    return sampleEmails
-      .filter((e) => {
-        const m = e.from.match(/<([^>]+)>/);
-        const addr = (m?.[1] ?? e.from).toLowerCase().trim();
-        return addr === senderEmail;
-      })
-      .slice(0, 20);
-  }
+  const getEmailsForSender = useCallback(
+    (senderEmail: string): Email[] => getEmailsForSenderFromList(sampleEmails, senderEmail),
+    [sampleEmails]
+  );
 
   const maxCount = stats[0]?.count ?? 1;
   const statusLine = progress || (syncing ? storeProgress : '');
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="p-4 border-b border-[var(--border)]">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="text-lg font-semibold">Analytics</h2>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              Sender frequency from your shared local inbox index
-              {totalEmails > 0 && dateRange ? ` · ${dateRange}` : ''}
-            </p>
-          </div>
-          <div className="flex shrink-0 gap-1">
-            {BUCKET_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setBucket(opt.value)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                  bucket === opt.value
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)]'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {statusLine ? <p className="mt-2 text-xs text-[var(--text-muted)]">{statusLine}</p> : null}
-      </div>
+      <AnalyticsHeader
+        totalEmails={totalEmails}
+        dateRange={dateRange}
+        bucket={bucket}
+        setBucket={setBucket}
+        statusLine={statusLine}
+      />
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
         </div>
       ) : error ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center space-y-4 max-w-sm px-6">
-            <p className="text-sm text-[var(--text-muted)]">{error}</p>
-            <button
-              onClick={() => loadAnalytics(bucket)}
-              className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
+        <AnalyticsError error={error} onRetry={() => loadAnalytics(bucket)} />
       ) : stats.length === 0 ? (
         <div className="flex items-center justify-center py-16 text-[var(--text-muted)]">
           No email data yet — sync your inbox from the sidebar
@@ -204,59 +303,33 @@ export function Analytics() {
       ) : (
         <div className="divide-y divide-[var(--border)]">
           {stats.map((sender) => (
-            <div key={sender.email}>
-              <button
-                type="button"
-                onClick={() => setExpanded(expanded === sender.email ? null : sender.email)}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--bg-elevated)] transition cursor-pointer text-left"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{sender.displayName}</div>
-                  <div className="text-xs text-[var(--text-muted)] truncate">{sender.email}</div>
-                </div>
-                <div className="shrink-0 flex items-center gap-3">
-                  <div className="w-24 h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--accent)] rounded-full"
-                      style={{ width: `${(sender.count / maxCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium tabular-nums w-8 text-right">
-                    {sender.count}
-                  </span>
-                </div>
-              </button>
-              {expanded === sender.email ? (
-                <div className="px-4 pb-3 space-y-1 bg-[var(--bg-elevated)]/50">
-                  <div className="flex items-center justify-between py-1">
-                    <span className="text-xs text-[var(--text-muted)]">Recent messages</span>
-                    {sender.unsubscribeLink && (
-                      <a
-                        href={sender.unsubscribeLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-[var(--danger)] hover:underline"
-                      >
-                        Unsubscribe
-                      </a>
-                    )}
-                  </div>
-                  {getEmailsForSender(sender.email).map((email) => (
-                    <EmailHoverPreview key={email.id} email={email}>
-                      <div className="text-xs py-1 truncate">
-                        <span className="text-[var(--text-muted)]">
-                          {formatEmailDateShort(email.date)}
-                        </span>{' '}
-                        {email.subject}
-                      </div>
-                    </EmailHoverPreview>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            <SenderRow
+              key={sender.email}
+              sender={sender}
+              maxCount={maxCount}
+              expanded={expanded === sender.email}
+              onToggle={() => setExpanded(expanded === sender.email ? null : sender.email)}
+              senderEmails={getEmailsForSender(sender.email)}
+            />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function AnalyticsError({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <div className="text-center space-y-4 max-w-sm px-6">
+        <p className="text-sm text-[var(--text-muted)]">{error}</p>
+        <button
+          onClick={onRetry}
+          className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
+        >
+          Try again
+        </button>
+      </div>
     </div>
   );
 }

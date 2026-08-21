@@ -62,19 +62,29 @@ async function verifySyncInvariants() {
   const syncAge = await readSrc('src/lib/sync-age.ts');
   const db = await readSrc('src/lib/db.ts');
 
+  const RE_SYNC_MAX_PAGE = new RegExp('SYNC_MAX_PAGE\\s*=\\s*500');
+  const RE_MATH_MIN = new RegExp('Math\\.min\\(SYNC_MAX_PAGE');
+  const RE_NEXT_PAGE = new RegExp('nextPageToken');
+  const RE_INBOX_SYNC_META = new RegExp('InboxSyncMeta');
+  const RE_SYNC_LOCK = new RegExp('syncLockRef|syncLock');
+  const RE_TX_PUT = new RegExp('tx\\.store\\.put\\(e\\)');
+  const RE_SIGNAL = new RegExp('signal\\?\\.aborted|AbortSignal');
+  const RE_RETRY_MAX = new RegExp('attempt < 3|attempt < \\d+');
+  const RE_RETRY_BACKOFF = new RegExp('1000 \\* 2 \\*\\* attempt|2 \\*\\* attempt');
+  const RE_STALE_MS = new RegExp('INBOX_STALE_MS');
+  const RE_LAST_ERROR = new RegExp('lastError');
+  const RE_CLASSIFY = new RegExp('classifySyncError');
+
   const checks = {
-    boundedWork:
-      /SYNC_MAX_PAGE\s*=\s*500/.test(inboxSync) && /Math\.min\(SYNC_MAX_PAGE/.test(inboxSync),
-    cursorWatermark: /nextPageToken/.test(inboxSync) && /InboxSyncMeta/.test(db),
-    concurrency: /syncLockRef|syncLock/.test(
-      await readSrc('src/components/MailboxStoreProvider.tsx')
-    ),
-    idempotency: /tx\.store\.put\(e\)/.test(db),
-    timeout: /signal\?\.aborted|AbortSignal/.test(inboxSync),
-    retryMaximum: /attempt < 3|attempt < \d+/.test(gmail),
-    retryBackoff: /1000 \* 2 \*\* attempt|2 \*\* attempt/.test(gmail),
-    freshness: /INBOX_STALE_MS/.test(syncAge),
-    durableFailure: /lastError/.test(db) && /classifySyncError/.test(inboxSync),
+    boundedWork: RE_SYNC_MAX_PAGE.test(inboxSync) && RE_MATH_MIN.test(inboxSync),
+    cursorWatermark: RE_NEXT_PAGE.test(inboxSync) && RE_INBOX_SYNC_META.test(db),
+    concurrency: RE_SYNC_LOCK.test(await readSrc('src/components/MailboxStoreProvider.tsx')),
+    idempotency: RE_TX_PUT.test(db),
+    timeout: RE_SIGNAL.test(inboxSync),
+    retryMaximum: RE_RETRY_MAX.test(gmail),
+    retryBackoff: RE_RETRY_BACKOFF.test(gmail),
+    freshness: RE_STALE_MS.test(syncAge),
+    durableFailure: RE_LAST_ERROR.test(db) && RE_CLASSIFY.test(inboxSync),
   };
   const allPass = Object.values(checks).every(Boolean);
   return { checks, allPass };
@@ -83,16 +93,18 @@ async function verifySyncInvariants() {
 /** Verify sanitized error handling in the worker. */
 async function verifySanitizedErrors() {
   const worker = await readSrc('src/worker.ts');
-  // Error responses must use generic/static messages — no interpolation of
-  // email fields (body, subject, from, snippet) into client-facing JSON.
-  const interpolatesEmailField =
-    /error:\s*[`'"][^`'"]*\$\{[^}]*\.(body|subject|from|snippet|unsubscribeLink)/i.test(worker);
-  // Console logs must not print tokens, secrets, or full error details that
-  // might contain Gmail API response bodies.
-  const logsSecrets =
-    /console\.(log|error|warn)\([^)]*(token|secret|password|credential|access_token)/i.test(worker);
-  // The worker must use generic client-facing error messages.
-  const hasGenericMessages = /Failed to fetch (emails|email)/.test(worker);
+  const RE_EMAIL_FIELD = new RegExp(
+    'error:\\s*[`\'"][^`\'"]*\\$\\{[^}]*\\.(body|subject|from|snippet|unsubscribeLink)',
+    'i'
+  );
+  const RE_SECRETS = new RegExp(
+    'console\\.(log|error|warn)\\([^)]*(token|secret|password|credential|access_token)',
+    'i'
+  );
+  const RE_GENERIC = new RegExp('Failed to fetch (emails|email)');
+  const interpolatesEmailField = RE_EMAIL_FIELD.test(worker);
+  const logsSecrets = RE_SECRETS.test(worker);
+  const hasGenericMessages = RE_GENERIC.test(worker);
   return {
     checks: {
       noEmailFieldInterpolation: !interpolatesEmailField,
@@ -107,12 +119,14 @@ async function verifySanitizedErrors() {
 async function probeAuthConfig() {
   const wrangler = await readSrc('wrangler.toml');
   const authLib = await readSrc('src/lib/auth.ts');
-  // Google OAuth credentials are Worker secrets (set via `wrangler secret put`),
-  // not [vars] in wrangler.toml. Verify the auth library references them.
-  const referencesGoogleClientId = /GOOGLE_CLIENT_ID/.test(authLib);
-  const referencesGoogleSecret = /GOOGLE_CLIENT_SECRET/.test(authLib);
-  const hasBetterAuthUrlVar = /BETTER_AUTH_URL/.test(wrangler);
-  const referencesBetterAuthSecret = /BETTER_AUTH_SECRET/.test(authLib);
+  const RE_GCID = new RegExp('GOOGLE_CLIENT_ID');
+  const RE_GSECRET = new RegExp('GOOGLE_CLIENT_SECRET');
+  const RE_AUTH_URL = new RegExp('BETTER_AUTH_URL');
+  const RE_AUTH_SECRET = new RegExp('BETTER_AUTH_SECRET');
+  const referencesGoogleClientId = RE_GCID.test(authLib);
+  const referencesGoogleSecret = RE_GSECRET.test(authLib);
+  const hasBetterAuthUrlVar = RE_AUTH_URL.test(wrangler);
+  const referencesBetterAuthSecret = RE_AUTH_SECRET.test(authLib);
   return {
     googleOAuth: referencesGoogleClientId && referencesGoogleSecret ? 'secret-managed' : 'missing',
     betterAuthSecret: referencesBetterAuthSecret ? 'secret-managed' : 'missing',

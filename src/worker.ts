@@ -83,11 +83,7 @@ app.on(['GET', 'POST'], '/api/auth/*', async (c) => {
   return createAuth(c.env).handler(c.req.raw);
 });
 
-app.get('/api/emails', async (c) => {
-  const token = await getGmailAccessToken(c.env, c.req.raw.headers);
-  if (!token) return c.json({ error: 'Unauthorized' }, 401);
-
-  const { searchParams } = new URL(c.req.url);
+function parseEmailListParams(searchParams: URLSearchParams) {
   const q = searchParams.get('q') ?? undefined;
   const label = searchParams.get('label') ?? undefined;
   const pageToken = searchParams.get('pageToken') ?? undefined;
@@ -95,6 +91,58 @@ app.get('/api/emails', async (c) => {
   const maxResults = maxResultsRaw > 0 && maxResultsRaw <= 500 ? maxResultsRaw : undefined;
   const metadataOnly = searchParams.get('metadataOnly') === 'true';
   const withReplyStatus = searchParams.get('replyStatus') === 'true';
+  return { q, label, pageToken, maxResults, metadataOnly, withReplyStatus };
+}
+
+async function annotateReplyStatus(
+  result: { emails: Array<{ threadId: string; replyStatus?: 'awaiting' | 'replied' }> },
+  token: string,
+  env: Env,
+  headers: Headers
+) {
+  const session = await createAuth(env).api.getSession({ headers });
+  const userEmail = session?.user?.email;
+  if (!userEmail) return;
+
+  const threadIds = [...new Set(result.emails.map((email) => email.threadId))];
+  const statusByThread = new Map<string, 'awaiting' | 'replied'>();
+  const BATCH = 10;
+  for (let i = 0; i < threadIds.length; i += BATCH) {
+    const batch = threadIds.slice(i, i + BATCH);
+    await Promise.all(
+      batch.map(async (threadId) => {
+        try {
+          const thread = await getThread(token, threadId, { metadataOnly: true });
+          statusByThread.set(threadId, classifyThreadReplyStatus(thread.messages, userEmail));
+        } catch {
+          statusByThread.set(threadId, 'awaiting');
+        }
+      })
+    );
+  }
+  result.emails = result.emails.map((email) => ({
+    ...email,
+    replyStatus: statusByThread.get(email.threadId) ?? 'awaiting',
+  }));
+}
+
+function emailListErrorResponse(err: unknown) {
+  const error = err as { message?: string; status?: number; code?: number };
+  console.error('GET /api/emails error:', error?.message ?? err);
+  const status =
+    typeof (error?.status ?? error?.code) === 'number' ? (error.status ?? error.code)! : 500;
+  const clientMsg =
+    status === 429 ? 'Too many requests, try again later' : 'Failed to fetch emails';
+  return { error: clientMsg, status: status as 500 };
+}
+
+app.get('/api/emails', async (c) => {
+  const token = await getGmailAccessToken(c.env, c.req.raw.headers);
+  if (!token) return c.json({ error: 'Unauthorized' }, 401);
+
+  const { q, label, pageToken, maxResults, metadataOnly, withReplyStatus } = parseEmailListParams(
+    new URL(c.req.url).searchParams
+  );
 
   try {
     const result = await listEmails(token, {
@@ -110,41 +158,13 @@ app.get('/api/emails', async (c) => {
     }
 
     if (withReplyStatus && label === 'SENT' && result.emails.length > 0) {
-      const session = await createAuth(c.env).api.getSession({ headers: c.req.raw.headers });
-      const userEmail = session?.user?.email;
-      if (userEmail) {
-        const threadIds = [...new Set(result.emails.map((email) => email.threadId))];
-        const statusByThread = new Map<string, 'awaiting' | 'replied'>();
-        const BATCH = 10;
-        for (let i = 0; i < threadIds.length; i += BATCH) {
-          const batch = threadIds.slice(i, i + BATCH);
-          await Promise.all(
-            batch.map(async (threadId) => {
-              try {
-                const thread = await getThread(token, threadId, { metadataOnly: true });
-                statusByThread.set(threadId, classifyThreadReplyStatus(thread.messages, userEmail));
-              } catch {
-                statusByThread.set(threadId, 'awaiting');
-              }
-            })
-          );
-        }
-        result.emails = result.emails.map((email) => ({
-          ...email,
-          replyStatus: statusByThread.get(email.threadId) ?? 'awaiting',
-        }));
-      }
+      await annotateReplyStatus(result, token, c.env, c.req.raw.headers);
     }
 
     return c.json(result);
   } catch (err: unknown) {
-    const error = err as { message?: string; status?: number; code?: number };
-    console.error('GET /api/emails error:', error?.message ?? err);
-    const status =
-      typeof (error?.status ?? error?.code) === 'number' ? (error.status ?? error.code)! : 500;
-    const clientMsg =
-      status === 429 ? 'Too many requests, try again later' : 'Failed to fetch emails';
-    return c.json({ error: clientMsg }, status as 500);
+    const { error, status } = emailListErrorResponse(err);
+    return c.json({ error }, status);
   }
 });
 
@@ -325,40 +345,46 @@ app.onError((err, c) => {
   return c.json({ error: 'Internal Server Error' }, 500);
 });
 
+function maybeRedirectToApp(url: URL, request: Request): Response | null {
+  if (request.method !== 'GET') return null;
+  if (url.pathname === '/' && hasAuthCookie(request)) {
+    return Response.redirect(`${url.origin}/app`, 302);
+  }
+  if (url.pathname === '/spa-index' || url.pathname === '/spa-index.html') {
+    return Response.redirect(`${url.origin}/app`, 302);
+  }
+  return null;
+}
+
+async function routeRequest(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  const url = new URL(request.url);
+
+  if (url.pathname.startsWith('/api/')) {
+    return app.fetch(request, env, ctx);
+  }
+
+  const redirect = maybeRedirectToApp(url, request);
+  if (redirect) return redirect;
+
+  if (request.method === 'GET' && isSpaRoute(url.pathname)) {
+    return serveSpaIndex(env, request);
+  }
+
+  if (request.method === 'GET' && url.pathname === '/') {
+    return serveLanding(request, env);
+  }
+
+  const assetResponse = await env.ASSETS.fetch(request);
+  if (assetResponse.status === 404 && request.method === 'GET' && isSpaRoute(url.pathname)) {
+    return serveSpaIndex(env, request);
+  }
+
+  return assetResponse.ok ? withSecurityHeaders(assetResponse) : assetResponse;
+}
+
 export default {
   fetch: withTiming(
-    async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
-      const url = new URL(request.url);
-
-      if (url.pathname.startsWith('/api/')) {
-        return app.fetch(request, env, ctx);
-      }
-
-      if (request.method === 'GET' && url.pathname === '/' && hasAuthCookie(request)) {
-        return Response.redirect(`${url.origin}/app`, 302);
-      }
-
-      if (
-        request.method === 'GET' &&
-        (url.pathname === '/spa-index' || url.pathname === '/spa-index.html')
-      ) {
-        return Response.redirect(`${url.origin}/app`, 302);
-      }
-
-      if (request.method === 'GET' && isSpaRoute(url.pathname)) {
-        return serveSpaIndex(env, request);
-      }
-
-      if (request.method === 'GET' && url.pathname === '/') {
-        return serveLanding(request, env);
-      }
-
-      const assetResponse = await env.ASSETS.fetch(request);
-      if (assetResponse.status === 404 && request.method === 'GET' && isSpaRoute(url.pathname)) {
-        return serveSpaIndex(env, request);
-      }
-
-      return assetResponse.ok ? withSecurityHeaders(assetResponse) : assetResponse;
-    }
+    async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> =>
+      routeRequest(request, env, ctx)
   ),
 };

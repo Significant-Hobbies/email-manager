@@ -61,6 +61,7 @@
         "noExcessiveCognitiveComplexity": "off",
         "noUselessUndefined": "off",
         "noVoid": "off",
+        "useRegexLiterals": "off",
         "useSimplifiedLogicExpression": "off"
       },
       "suspicious": {
