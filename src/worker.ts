@@ -14,7 +14,7 @@ export type Env = AuthEnv & {
 };
 
 const AUTH_COOKIE_FRAGMENTS = ['session_token', 'session-token'];
-const SPA_PATH_PREFIXES = ['/app', '/about', '/privacy'];
+const SPA_PATH_PREFIXES = ['/app', '/about', '/privacy', '/terms'];
 const LANDING_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800';
 
 const app = new Hono<{ Bindings: Env }>();

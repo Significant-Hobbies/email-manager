@@ -3,7 +3,7 @@ main = "src/worker.ts"
 compatibility_date = "2025-09-23"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
-# SPA routes (/app, /about, /privacy) are served by the Worker from
+# SPA routes (/app, /about, /privacy, /terms) are served by the Worker from
 # dist/spa-index.html. index.html is the Astro landing — using SPA
 # fallback here would serve the landing page for /app navigations.
 assets = { directory = "dist", binding = "ASSETS", not_found_handling = "none" }
