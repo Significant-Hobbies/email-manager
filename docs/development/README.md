@@ -8,6 +8,9 @@ Development workflows, testing strategy, and quality gates for email-manager.
   environment setup; secrets.
 - [`testing.md`](testing.md) — testing strategy: unit (Vitest), e2e (Playwright),
   digest fixture verification; what is and is not covered by CI.
+- [`astro-6-compatibility-review.md`](astro-6-compatibility-review.md) — scoped
+  review of upgrading landing-astro to Astro 6 and the image-size advisory
+  exceptions (issue #32).
 
 ## Quick reference
 

@@ -39,3 +39,7 @@ foundry-evidence.json
 
 # Test coverage output
 coverage/
+
+# Local code-intelligence caches — regenerated on demand, machine-specific.
+.codegrok/
+.repomap.tags.cache.v1/
