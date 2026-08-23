@@ -77,10 +77,7 @@ function checkDependencies() {
   const result = run('pnpm', ['audit', '--json'], { allowFailure: true });
   const report = JSON.parse(result.stdout);
   // Accepted migration/tooling debt: https://github.com/Significant-Hobbies/email-manager/issues/32
-  const accepted = new Set([
-    'GHSA-5p2g-fcmc-qvqq',
-    'GHSA-w3rx-r6r6-pgpr',
-  ]);
+  const accepted = new Set(['GHSA-5p2g-fcmc-qvqq', 'GHSA-w3rx-r6r6-pgpr']);
   const severe = Object.values(report.advisories ?? {}).filter((advisory) =>
     ['critical', 'high'].includes(advisory.severity)
   );
