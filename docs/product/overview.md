@@ -17,8 +17,7 @@ and weekly digest reflection without server-side mailbox storage.
 client-side embeddings, digest/filter studio, and sender insights.
 
 **OUT of scope:** Server-side digest cron/delivery, LLM-written digest prose,
-automatic Today Little Log sync, saved filter presets, commercial "personal
-reporter" positioning.
+saved filter presets, commercial "personal reporter" positioning.
 
 Authoritative scope: [`../../PROJECT_STATUS.md`](../../PROJECT_STATUS.md)
 "Why / What" section.

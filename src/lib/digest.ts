@@ -360,32 +360,6 @@ function themeLabelFromId(id: string): string {
   return labels[id] ?? id;
 }
 
-/** Opt-in export payload for manual paste into Today Little Log. */
-export function digestToTodayLittleLogExport(digest: WeeklyDigest): {
-  format: 'email-manager-tll-digest-export';
-  formatVersion: 1;
-  date: string;
-  source: 'email-manager';
-  summary: string;
-  axes: { id: string; label: string; value: number }[];
-} {
-  const quiet = digest.relationshipsQuiet.length;
-  const revisit = digest.threadsToRevisit.length;
-  const themes = digest.weeklyThemes.length;
-  return {
-    format: 'email-manager-tll-digest-export',
-    formatVersion: 1,
-    date: digest.periodEnd,
-    source: 'email-manager',
-    summary: `Week ${digest.periodStart}–${digest.periodEnd}: ${quiet} quiet relationship(s), ${revisit} thread(s) to revisit, ${themes} theme(s). Generated in Kinetic; no message bodies included.`,
-    axes: [
-      { id: 'quiet-relationships', label: 'Reconnect', value: quiet },
-      { id: 'threads-revisit', label: 'Revisit threads', value: revisit },
-      { id: 'weekly-themes', label: 'Themes', value: themes },
-    ],
-  };
-}
-
 function parseSender(from: string): { email: string; displayName: string } {
   const emailMatch = from.match(/<([^>]+)>/);
   const email = (emailMatch?.[1] ?? from).toLowerCase().trim();

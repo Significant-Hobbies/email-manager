@@ -51,8 +51,6 @@ The user can:
   - Weekly themes.
 - Include one primary CTA:
   - `Generate this week`.
-- Include one secondary CTA:
-  - `Copy for Today Little Log`.
 
 ## Success proof
 
@@ -64,7 +62,6 @@ The user can:
 
 - Digest preview is powered by `buildWeeklyDigest(...)`.
 - Digest UI renders all three digest sections.
-- Export uses the deterministic `digestToTodayLittleLogExport(...)` shape.
 - No server storage is introduced.
 - No additional Gmail scopes are required.
 

@@ -11,7 +11,7 @@ import { expect, test } from '@playwright/test';
  * flow is verified manually against the mobile conventions doc.
  */
 test.describe('landing page', () => {
-  test('renders the hero, features, and a single CTA with no horizontal scroll', async ({
+  test('renders the product narrative and shared footer surfaces with no horizontal scroll', async ({
     page,
   }) => {
     await page.goto('/');
@@ -20,17 +20,20 @@ test.describe('landing page', () => {
 
     await expect(
       page.getByRole('heading', {
-        name: /search your gmail by meaning/i,
+        name: /remember the email.*not the exact words/i,
         level: 1,
       })
     ).toBeVisible();
 
-    await expect(page.getByText(/local-first gmail search/i)).toBeVisible();
-    await expect(page.getByText(/100% in your browser/i)).toBeVisible();
+    await expect(page.getByText(/local-first inbox intelligence/i)).toBeVisible();
+    await expect(page.getByText(/ranked locally.*nothing uploaded/i)).toBeVisible();
 
     await expect(
       page.getByRole('link', { name: /connect gmail and search/i }).first()
     ).toBeVisible();
+
+    await expect(page.locator('[data-ai-provider]')).toHaveCount(5);
+    await expect(page.locator('portfolio-project-strip')).toHaveCount(1);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth

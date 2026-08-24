@@ -22,7 +22,6 @@ Kinetic already stores mailbox metadata and embeddings in **IndexedDB** (`src/li
 | Reconnection | User opens ≥1 “gone quiet” contact from digest per week |
 | Follow-through | User opens ≥1 “thread to revisit” per digest |
 | Reflection | User reads weekly themes without leaving the app |
-| Optional journal | ≥5% of digest viewers opt in to export a summary to Today Little Log |
 
 ## Non-goals
 
@@ -38,10 +37,9 @@ Kinetic already stores mailbox metadata and embeddings in **IndexedDB** (`src/li
 |----------|------|
 | Data location | Digest inputs and outputs stay in **browser storage** (IndexedDB + optional `localStorage` prefs). Never written to D1 or Workers KV. |
 | Network | Digest build is **offline-capable** once IndexedDB is populated. No digest API route in v1. |
-| Identifiers | Digest export uses **hashed sender keys** (`sha256` of normalized email) in cross-app payloads; display names only inside Kinetic. |
+| Identifiers | Sender keys are hashed (`sha256` of normalized email); display names stay inside Kinetic. |
 | Embeddings | Weekly themes may use existing local embeddings; theme labels are **counts/clusters**, not raw message bodies in exports. |
 | Third parties | No PostHog events containing subject lines, snippets, or sender addresses unless explicitly opted in later. |
-| Today Little Log | Export is **manual, opt-in, one screen at a time**; no background sync. |
 
 ## Retention rules
 
@@ -50,7 +48,6 @@ Kinetic already stores mailbox metadata and embeddings in **IndexedDB** (`src/li
 | IndexedDB emails | Until user clears site data or uses in-app “clear local cache” (future) | Browser “clear site data” |
 | Digest snapshots | **90 days** rolling in IndexedDB store `digests` (planned v2) | Toggle “keep digests” off → stop writing; purge button |
 | Digest prefs | `localStorage` key `email-manager:digest:*` | Cleared with site data |
-| TLL export files | User-owned after download; not retained by Kinetic | N/A |
 
 v1 (this task) does **not** add IndexedDB schema upgrades—only documents retention and ships pure `buildWeeklyDigest()` over existing `StoredEmail` rows.
 
@@ -87,26 +84,9 @@ flowchart LR
   IDB --> Build[buildWeeklyDigest]
   Build --> Preview[Digest preview UI]
   Preview --> Open[Open thread in Kinetic]
-  Preview --> Export[Opt-in TLL export]
-  Export --> TLL[Today Little Log paste/import]
 ```
 
 **Cadence:** user-triggered “Generate this week” on first ship; later optional `localStorage` reminder (“Sunday digest”) with no server cron.
-
-## Opt-in export to Today Little Log
-
-Today Little Log (TLL) is a separate daily scoreboard app. Kinetic should not assume TLL auth.
-
-**v1 export shape** (`email-manager-tll-digest-export`):
-
-- `date` — digest week ending (ISO)
-- `summary` — ≤500 chars deterministic text (counts only, no subjects)
-- `axes` — optional scoreboard axes, e.g. `{ id: "inbox-relationships", label: "People to reconnect", value: 3 }`
-- `source: "email-manager"` + `project_id` for manual import
-
-**UX:** Digest preview → “Copy for Today Little Log” → clipboard JSON or markdown bullet list. User pastes into a TLL journal note or custom scoreboard item. **No OAuth bridge** between apps in v1.
-
-If TLL later adds a generic `POST /api/import-note` with user consent, Kinetic can gate behind explicit “Connect” — out of scope here.
 
 ## Implementation phases
 
@@ -116,7 +96,6 @@ If TLL later adds a generic `POST /api/import-note` with user consent, Kinetic c
 | **1** | IndexedDB `digests` store + `#digest` view (read-only preview) | Low — client only |
 | **2** | Open tracking in IndexedDB for “revisit” accuracy | Low |
 | **3** | Embedding-based theme labels (on-device) | Medium — CPU/battery |
-| **4** | TLL deep link or import API if TLL ships importer | Cross-app consent |
 
 ## Fixture-backed mock (phase 0)
 
@@ -157,5 +136,5 @@ node scripts/verify-digest-fixture.mjs
 |-----------|----------|
 | Local/private digest defined | Sections above + `WeeklyDigest` types in `src/lib/digest.ts` |
 | No secrets/OAuth changes | No edits to `auth.ts`, wrangler, or `.env*` |
-| Privacy + retention + TLL opt-in | Tables in this doc |
+| Privacy + retention boundaries | Tables in this doc |
 | Brief or fixture mock | This file + `fixtures/*` + `scripts/verify-digest-fixture.mjs` |

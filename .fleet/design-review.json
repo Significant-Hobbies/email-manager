@@ -2,34 +2,38 @@
   "$schema": "fleet.design-review.v1",
   "version": 1,
   "project": "email-manager",
-  "target": "Email Manager changelog",
-  "mode": "preserve",
+  "target": "Kinetic public landing page",
+  "mode": "overhaul",
   "register": "product",
   "context": {
     "product": "PRODUCT.md",
     "design": "DESIGN.md"
   },
   "direction": {
-    "references": [],
-    "probes": [],
-    "selected": "existing-design",
-    "approval": "not-required",
-    "before": ".fleet/evidence/changelog/before-1440.png"
+    "references": [
+      "Fleet iOS Landing narrative sequence: product artifact, tension, fit, privacy, honest answers, close",
+      "Existing Kinetic pale-violet palette and semantic-search browser artifact",
+      "Anti-reference: equal-weight SaaS feature-card grid with generic privacy copy"
+    ],
+    "probes": [
+      {
+        "id": "incumbent-feature-grid",
+        "path": "artifacts/design/before-template-1440.png"
+      },
+      {
+        "id": "narrative-template-with-browser-artifact",
+        "path": "artifacts/design/after-template-1440.png"
+      }
+    ],
+    "selected": "narrative-template-with-browser-artifact",
+    "approval": "delegated",
+    "before": "artifacts/design/before-template-1440.png"
   },
   "evidence": {
     "screenshots": [
-      {
-        "width": 390,
-        "path": ".fleet/evidence/changelog/after-390.png"
-      },
-      {
-        "width": 768,
-        "path": ".fleet/evidence/changelog/after-768.png"
-      },
-      {
-        "width": 1440,
-        "path": ".fleet/evidence/changelog/after-1440.png"
-      }
+      { "width": 390, "path": "artifacts/design/after-template-390.png" },
+      { "width": 768, "path": "artifacts/design/after-template-768.png" },
+      { "width": 1440, "path": "artifacts/design/after-template-1440.png" }
     ],
     "projectCheck": {
       "command": "pnpm build:landing",
@@ -40,7 +44,7 @@
       "maximum": 40
     },
     "audit": {
-      "score": 19,
+      "score": 18,
       "maximum": 20
     },
     "unresolved": {
@@ -49,18 +53,21 @@
     },
     "detector": {
       "posture": "advisory",
-      "findings": []
+      "findings": [
+        "The oversized editorial headline is intentional and balanced by the real product artifact.",
+        "The pale-violet field is retained from Kinetic rather than copied from the template brand."
+      ]
     },
     "browserReview": {
-      "tool": "Playwright",
+      "tool": "Playwright with installed Google Chrome",
       "viewports": [390, 768, 1440],
       "horizontalOverflow": false,
       "consoleErrors": 0,
-      "note": "The changelog was visually inspected at all required widths. Navigation wraps without clipping, entries remain readable, and resource links retain usable touch targets."
+      "note": "All required widths render the complete narrative, five AI-provider links, and the shared portfolio project strip. The former 557px mobile overflow is gone."
     }
   },
   "ownerFeedback": {
     "decision": "delegated",
-    "note": "Owner explicitly delegated agents to build first-party changelogs across all projects."
+    "note": "Owner explicitly selected the Fleet landing template direction and asked to get the implementation done."
   }
 }

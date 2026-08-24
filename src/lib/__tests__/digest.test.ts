@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   buildWeeklyDigest,
   themeKeyFromSubject,
-  digestToTodayLittleLogExport,
   type DigestEmailInput,
 } from '../digest';
 
@@ -95,21 +94,5 @@ describe('buildWeeklyDigest', () => {
     expect(digest.threadsToRevisit).toHaveLength(1);
     expect(digest.threadsToRevisit[0].reason).toBe('long_thread_stale');
     expect(digest.threadsToRevisit[0].messageCount).toBe(4);
-  });
-});
-
-describe('digestToTodayLittleLogExport', () => {
-  it('produces export payload with correct axes', () => {
-    const digest = buildWeeklyDigest([], { now: new Date('2026-06-23T00:00:00Z') });
-    const exportPayload = digestToTodayLittleLogExport(digest);
-    expect(exportPayload.format).toBe('email-manager-tll-digest-export');
-    expect(exportPayload.formatVersion).toBe(1);
-    expect(exportPayload.source).toBe('email-manager');
-    expect(exportPayload.axes).toHaveLength(3);
-    expect(exportPayload.axes.map((a) => a.id)).toEqual([
-      'quiet-relationships',
-      'threads-revisit',
-      'weekly-themes',
-    ]);
   });
 });

@@ -11,7 +11,7 @@ Last updated: 2026-08-09
 
 **IN scope:** Vite SPA + Hono worker, Astro landing, IndexedDB cache, client-side embeddings, digest/filter studio, and sender insights.
 
-**OUT of scope:** Server-side digest cron/delivery, LLM-written digest prose, automatic Today Little Log sync, saved filter presets, commercial "personal reporter" positioning.
+**OUT of scope:** Server-side digest cron/delivery, LLM-written digest prose, saved filter presets, commercial "personal reporter" positioning.
 
 ## Dependencies
 
@@ -26,10 +26,6 @@ Last updated: 2026-08-09
   exceptions preserve Email Manager's established formatting and code-style
   contract without changing runtime behavior.
 - **Secrets (names only):** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`.
-
-### Internal (fleet)
-
-- **Today Little Log:** manual digest export via `digestToTodayLittleLogExport()` clipboard copy only — no automatic sync.
 
 ### Stack & commands
 
@@ -156,7 +152,6 @@ Last updated: 2026-08-09
 - `WeeklyDigestView` renders `buildWeeklyDigest()` from IndexedDB.
 - Sections: quiet relationships, threads to revisit, weekly themes.
 - Open sender → inbox search `from:`; open thread → subject search.
-- `digestToTodayLittleLogExport()` clipboard copy (manual only).
 - Fixtures: `fixtures/digest-sample-emails.json`, `fixtures/weekly-digest-sample.json`; verify via `pnpm digest:verify`.
 
 **Retired triage experiment:**

@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildWeeklyDigest, digestToTodayLittleLogExport } from '../src/lib/digest.ts';
+import { buildWeeklyDigest } from '../src/lib/digest.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -26,17 +26,4 @@ if (JSON.stringify(actual) !== JSON.stringify(expected)) {
   process.exit(1);
 }
 
-const tllExport = digestToTodayLittleLogExport(actual);
-if (
-  tllExport.format !== 'email-manager-tll-digest-export' ||
-  tllExport.source !== 'email-manager' ||
-  tllExport.axes.length !== 3 ||
-  tllExport.summary.includes('Follow up on proposal')
-) {
-  console.error('TLL export shape mismatch.');
-  console.error(JSON.stringify(tllExport, null, 2));
-  process.exit(1);
-}
-
 console.log('digest fixture OK');
-console.log('tll export OK');
