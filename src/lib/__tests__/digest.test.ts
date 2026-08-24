@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  buildWeeklyDigest,
-  themeKeyFromSubject,
-  type DigestEmailInput,
-} from '../digest';
+import { buildWeeklyDigest, themeKeyFromSubject, type DigestEmailInput } from '../digest';
 
 function makeEmail(overrides: Partial<DigestEmailInput> = {}): DigestEmailInput {
   return {
