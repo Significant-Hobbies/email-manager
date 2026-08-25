@@ -35,8 +35,6 @@ pnpm test         # vitest run
 pnpm test:e2e     # playwright test
 pnpm digest:verify  # golden-file digest fixture check
 pnpm check:docs   # validate docs/ (broken links, empty docs, required files)
-pnpm docs:dev     # Blume docs dev server (presentation layer)
-pnpm docs:build   # Blume docs build → apps/docs-blume/dist/
 ```
 
 ## Critical constraints
@@ -69,7 +67,8 @@ pnpm docs:build   # Blume docs build → apps/docs-blume/dist/
 
 ## Documentation maintenance rules
 
-1. **Markdown is the source of truth.** Blume (`apps/docs-blume/`) is the presentation and search layer only. Never author content inside `apps/docs-blume/dist/`.
+1. **Markdown is the source of truth.** Keep documentation content in the
+   committed `docs/` tree.
 2. **One home per fact.** Do not duplicate a concept in two files. Link from secondary surfaces to the canonical home.
 3. **Record why, not what.** Code shows what. Document non-obvious constraints, operational procedures, important decisions, and reusable failed approaches.
 4. **Mark unresolved questions explicitly** (e.g., "TBD", "Open question:").

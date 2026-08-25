@@ -6,15 +6,14 @@ product knowledge, architecture, decisions, development workflows, operations,
 and durable learnings. Code and executable configuration remain authoritative
 for implementation details and schedules.
 
-[Blume](../apps/docs-blume/) (`apps/docs-blume/`) is the presentation and search
-layer that renders this tree. It does not own content. The committed Markdown
-here is what Blume reads via `content.root`.
+The committed Markdown here is the source of truth. Code and executable
+configuration remain authoritative for implementation details and schedules.
 
 ## Layout
 
 | Path | Purpose |
 | --- | --- |
-| [`index.md`](index.md) | Public landing page (rendered by Blume). |
+| [`index.md`](index.md) | Public landing page. |
 | [`current/`](current/) | Current-state pointers: STATUS.md and PROJECT_STATUS.md. |
 | [`product/`](product/) | Product knowledge: what email-manager is, scope, users, recommendation context. |
 | [`architecture/`](architecture/) | System architecture, data flow, and `decisions.md` (ADR log). |
@@ -45,8 +44,7 @@ here is what Blume reads via `content.root`.
 
 1. **One home per fact.** Do not duplicate a concept in two files. Link from
    secondary surfaces to the canonical home.
-2. **Markdown is the source of truth.** Blume is a presentation layer; never
-   edit content inside `apps/docs-blume/dist/`.
+2. **Markdown is the source of truth.** Keep canonical content in this tree.
 3. **Record why, not what.** Code shows what. Document non-obvious constraints,
    operational procedures, important decisions, and reusable failed approaches.
 4. **Mark unresolved questions explicitly** (e.g., "TBD", "Open question:").

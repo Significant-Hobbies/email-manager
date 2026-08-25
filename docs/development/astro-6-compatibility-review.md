@@ -26,7 +26,7 @@ no content collections, no client islands, no image optimization pipeline.
 
 | Breaking change | Relevant? | Evidence |
 | --- | --- | --- |
-| **Node 22+ required** (dropped 18 & 20) | No — already satisfied | Repo runs Node v24.19.0; `apps/docs-blume` already requires `>=22.12.0`. `landing-astro` has no `engines` field but is built under the same Node. |
+| **Node 22+ required** (dropped 18 & 20) | No — already satisfied | Repo runs Node v24.19.0; `landing-astro` has no `engines` field but is built under the same Node. |
 | **Vite 7.0 upgrade** | Low risk | Config uses `vite.css.transformer: 'lightningcss'` and `vite.build.cssMinify: 'lightningcss'` — standard Vite CSS options preserved in Vite 7. No custom Vite plugins or pinned Vite version. |
 | **Zod 4 upgrade** (content schemas) | No | No content collections, no `defineCollection`/`getCollection`, no `src/content/` directory. `@astrojs/sitemap@3.7.3` already declares `zod: ^4.3.6` so the transitive Zod 4 bump is absorbed. |
 | **Removed: `Astro.glob()`** | No | Not used anywhere in `landing-astro/src/`. |
@@ -71,16 +71,16 @@ expected, though the `faq.astro` JSON-LD script should be verified (and
 
 ## 6. image-size advisory check
 
-Issue #32 says: "Remove the image-size exceptions when Blume publishes a fixed
-dependency chain." The four accepted advisories in
+Issue #32 tracks removal of the image-size exceptions once their dependency
+chain is fixed. The four accepted advisories in
 `scripts/check-code-health.mjs` are:
 
 | Advisory | Module | Severity | Category |
 | --- | --- | --- | --- |
 | `GHSA-2pvr-wf23-7pc7` | astro | high | Astro (cleared by Astro 6.4.6+) |
 | `GHSA-8hv8-536x-4wqp` | astro | high | Astro (cleared by Astro 6.3.3+) |
-| `GHSA-5p2g-fcmc-qvqq` | image-size | high | image-size (Blume docs tool) |
-| `GHSA-w3rx-r6r6-pgpr` | image-size | high | image-size (Blume docs tool) |
+| `GHSA-5p2g-fcmc-qvqq` | image-size | high | image-size tooling |
+| `GHSA-w3rx-r6r6-pgpr` | image-size | high | image-size tooling |
 
 ### image-size findings
 
@@ -88,10 +88,9 @@ dependency chain." The four accepted advisories in
   `vulnerable_versions: <=2.0.2` and `patched_versions: <0.0.0` (i.e. no
   patched version exists). The npm registry confirms `2.0.2` is the latest
   published version — the same version that is vulnerable.
-- **Blume still pulls image-size.** The dependency chain is
-  `apps/docs-blume > blume@1.4.3 > image-size@2.0.2`. Blume 1.4.3 declares
-  `"image-size": "^2.0.2"` as a direct dependency. There is no override or
-  patch available downstream.
+- The former documentation-tool dependency chain is no longer installed in
+  this repository. The accepted entries should be reviewed separately because
+  they may no longer correspond to a live dependency.
 - **The advisories are DoS-only** (infinite loops in ICNS, JXL, and HEIF
   parsers). The docs tool processes local markdown images, not untrusted
   user-uploaded files, so the practical exploitability is low — but the
@@ -99,11 +98,9 @@ dependency chain." The four accepted advisories in
 
 ### Can the image-size exceptions be removed now?
 
-**No.** image-size has not published a fixed version, and Blume 1.4.3 still
-depends on the vulnerable `2.0.2`. The two `image-size` entries must remain in
-the accepted-advisories set in `scripts/check-code-health.mjs` until Blume
-either drops the `image-size` dependency or upgrades to a patched release
-(once one exists).
+**No.** image-size has not published a fixed version. The two entries remain
+in the accepted set for now and should be re-evaluated against the current
+dependency tree.
 
 ### Can the Astro exceptions be removed now?
 
@@ -130,4 +127,4 @@ image-size entries.
 | landing-astro → Astro 6 upgrade | Safe; scope is a version bump + build check |
 | `@astrojs/sitemap` compatibility | Already compatible (no astro peer dep, Zod 4) |
 | Astro exceptions (`GHSA-2pvr…`, `GHSA-8hv8…`) | Removable after upgrade to 6.4.6+ |
-| image-size exceptions (`GHSA-5p2g…`, `GHSA-w3rx…`) | **Not removable** — no fix published, Blume still depends on 2.0.2 |
+| image-size exceptions (`GHSA-5p2g…`, `GHSA-w3rx…`) | **Needs review** — no fix published; current consumers should be rechecked |

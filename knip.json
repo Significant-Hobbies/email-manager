@@ -13,10 +13,6 @@
     "landing-astro": {
       "entry": ["public/project-strip.js"],
       "ignoreDependencies": ["lightningcss", "wrangler"]
-    },
-    "apps/docs-blume": {
-      "entry": ["blume.config.ts"],
-      "ignoreDependencies": ["astro"]
     }
   }
 }

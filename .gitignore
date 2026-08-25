@@ -22,12 +22,6 @@ cache.bin
 /playwright-report/
 /playwright/.cache/
 
-# Blume docs build artifacts (presentation layer — not source of truth)
-apps/docs-blume/node_modules/
-apps/docs-blume/dist/
-apps/docs-blume/.blume/
-apps/docs-blume/.astro/
-
 # Local agent logs / scratch
 .agent-logs/
 .devin-logs/

@@ -6,7 +6,7 @@
 //   2. No markdown file is empty or a near-empty placeholder.
 //   3. Relative markdown links resolve to an existing file (or a directory
 //      containing an index.md / README.md).
-//   4. The Blume config points content.root at an existing directory.
+//   4. Required documentation files are present.
 //
 // Does NOT check external http(s) links (use a linkchecker for those).
 //
@@ -48,9 +48,6 @@ const requiredFiles = [
   'docs/knowledge/learnings/lessons.md',
   'docs/knowledge/learnings/external-references.md',
   'docs/knowledge/failed-approaches/README.md',
-  'apps/docs-blume/blume.config.ts',
-  'apps/docs-blume/package.json',
-  'apps/docs-blume/README.md',
   'scripts/check-docs.mjs',
 ];
 
@@ -108,7 +105,7 @@ const docsMarkdown = await walkMarkdown(docsRoot);
 const allMarkdown = [...new Set([...rootMarkdown, ...docsMarkdown])];
 
 // Skip generated/presentation dirs that are not source of truth.
-const skipPaths = new Set(['apps/docs-blume/dist', 'apps/docs-blume/.blume', 'landing-astro/dist']);
+const skipPaths = new Set(['landing-astro/dist']);
 
 // Deliberate thin pointer files that are allowed to be tiny.
 const pointerAllowlist = new Set(['CLAUDE.md']);
@@ -134,9 +131,8 @@ async function resolveTarget(fromRel, target) {
   if (!pathOnly) return { ok: !!anchor, resolved: '' };
   let base = fileDir;
   let relPath = pathOnly;
-  // Leading-slash links inside docs/ are Blume site routes resolved against
-  // the docs/ content root. Leading-slash links from root-level markdown are
-  // repo-root relative.
+  // Leading-slash links inside docs/ resolve against the docs content root.
+  // Leading-slash links from root-level markdown are repo-root relative.
   if (pathOnly.startsWith('/')) {
     if (fromRel.startsWith('docs/') || fromRel === 'docs/README.md') {
       base = docsRoot;
@@ -169,11 +165,7 @@ async function resolveTarget(fromRel, target) {
 for (const rel of allMarkdown) {
   // Skip files inside generated/presentation directories.
   const relDir = path.dirname(rel);
-  if (
-    skipPaths.has(relDir) ||
-    relDir.startsWith('apps/docs-blume/dist') ||
-    relDir.startsWith('apps/docs-blume/.blume')
-  )
+  if (skipPaths.has(relDir))
     continue;
 
   const full = path.join(repoRoot, rel);
@@ -216,26 +208,6 @@ for (const rel of allMarkdown) {
       err(`Broken image in ${rel}: "${target}" -> ${path.relative(repoRoot, resolved)}`);
     }
   }
-}
-
-// --- 3. Blume config sanity ---------------------------------------------
-const blumeConfig = path.join(repoRoot, 'apps/docs-blume/blume.config.ts');
-try {
-  const cfg = await readFile(blumeConfig, 'utf8');
-  const rootMatch = cfg.match(/content:\s*\{\s*root:\s*['"]([^'"]+)['"]/);
-  if (!rootMatch) {
-    err('Blume config: could not find content.root');
-  } else {
-    const root = path.resolve(path.dirname(blumeConfig), rootMatch[1]);
-    try {
-      const s = await stat(root);
-      if (!s.isDirectory()) err(`Blume content.root is not a directory: ${root}`);
-    } catch {
-      err(`Blume content.root does not exist: ${root}`);
-    }
-  }
-} catch {
-  warn('Blume config not found (apps/docs-blume/blume.config.ts); skipping Blume sanity check.');
 }
 
 // --- Report --------------------------------------------------------------
