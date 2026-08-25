@@ -9,6 +9,8 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 
+const testPort = process.env.PLAYWRIGHT_PORT ?? '8787';
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -16,12 +18,12 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:8787',
+    baseURL: `http://localhost:${testPort}`,
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm build && wrangler dev',
-    url: 'http://localhost:8787',
+    command: `pnpm build && wrangler dev --port ${testPort}`,
+    url: `http://localhost:${testPort}`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },
