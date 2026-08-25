@@ -165,8 +165,7 @@ async function resolveTarget(fromRel, target) {
 for (const rel of allMarkdown) {
   // Skip files inside generated/presentation directories.
   const relDir = path.dirname(rel);
-  if (skipPaths.has(relDir))
-    continue;
+  if (skipPaths.has(relDir)) continue;
 
   const full = path.join(repoRoot, rel);
   let content;
