@@ -1,0 +1,40 @@
+{
+  "$schema": "fleet.landing-audit.v1",
+  "project": "email-manager",
+  "priority": "P4",
+  "decision": "Maintenance",
+  "auditedAt": "2026-08-29",
+  "candidateUrl": "https://mail.significanthobbies.com/",
+  "productionUrl": "https://mail.significanthobbies.com/",
+  "releaseState": "Current production and source-qualified landing match; no deployment was performed by this audit.",
+  "implementationAction": "preserve",
+  "migrationCandidate": false,
+  "gates": {
+    "contentPurpose": {
+      "score": 99,
+      "status": "pass",
+      "evidence": "The hero explains semantic Gmail recall, sender-volume understanding, and durable filter recipes while making the read-only and browser-local boundaries explicit. Audience, mechanism, proof, and open-app action are all visible without relying on feature jargon."
+    },
+    "designQuality": {
+      "score": 96,
+      "status": "pass",
+      "evidence": "The existing Kinetic landing is a polished adaptation of the shared narrative system, not a generic dashboard. Fresh 390 and 1440 pixel renders have strong hierarchy, real product demonstration, deliberate section rhythm, both shared footer elements, zero overflow, and no console errors."
+    },
+    "seo": {
+      "score": 99,
+      "status": "pass",
+      "evidence": "Production passes all critical page and site-level SEO checks: title, 140-character description, canonical, Open Graph, social card, headings, content depth, robots, and sitemap coverage. Link crawl found zero errors or redirects; four SPA routes are deliberately canonicalized to the landing and excluded from the public sitemap."
+    },
+    "geo": {
+      "score": 100,
+      "status": "pass",
+      "evidence": "Production agent-index audit is S-tier 100 with real llms.txt, /api/ai, homepage Markdown, robots, sitemap, JSON-LD, and complete catalog integrity."
+    },
+    "performance": {
+      "score": 99,
+      "status": "pass",
+      "evidence": "Four-profile PSI Swarm qualification produced weighted LCP 0.693 s, mobile-mid 0.900 s, mobile-fast 0.496 s, desktop 0.304 s, harsh mobile-slow 1.820 s, CLS 0.003, and TBT 0 with no actionable opportunities."
+    }
+  },
+  "minimumObserved": 96
+}
