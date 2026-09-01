@@ -7,7 +7,7 @@ export function PrivacyPage() {
         ← Kinetic
       </a>
       <h1 className="mt-3 text-3xl font-bold tracking-tight">Privacy</h1>
-      <p className="mt-4 text-xs text-gray-500">Last updated: 2026-07-29.</p>
+      <p className="mt-4 text-xs text-gray-500">Last updated: 2026-08-31.</p>
 
       <h2 className="mt-8 text-base font-semibold">What we read</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5">
@@ -49,6 +49,15 @@ export function PrivacyPage() {
         </li>
         <li>Run third-party analytics or remarketing tags against your inbox content.</li>
       </ul>
+
+      <h2 className="mt-8 text-base font-semibold">Website analytics</h2>
+      <p className="mt-2">
+        The public marketing page uses Microsoft Clarity for session replay and heatmaps. The
+        authenticated inbox application does not load Clarity, so Gmail messages, search results,
+        sender analytics, and locally generated embeddings are outside that recording surface. The
+        application uses PostHog for bounded product events and does not send inbox content in those
+        events.
+      </p>
 
       <h2 className="mt-8 text-base font-semibold">Google API data</h2>
       <p className="mt-2">

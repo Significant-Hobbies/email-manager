@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-08-09
+Last updated: 2026-08-31
 
 ## Why / What
 
@@ -51,6 +51,10 @@ Last updated: 2026-08-09
 
 ## Timeline
 
+- **2026-08-31:** Added source-ready product-owned Microsoft Clarity tracking
+  to the public marketing landing only. The authenticated Gmail application is
+  deliberately excluded so session replay cannot observe inbox content; the
+  privacy surface now states that boundary. No deployment ran.
 - **2026-08-09:** Adopted the verified Ultracite-backed Biome baseline through
   the existing `pnpm check` gate. The compatibility layer records current
   project-specific exceptions explicitly; no source rewrite, production
