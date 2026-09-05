@@ -30,7 +30,7 @@ is fetched on demand and cached locally in IndexedDB inside the browser.
 | Hosting | Cloudflare Workers (`email-manager`, email-manager.sarthakagrawal927.workers.dev) — Vite SPA + Hono worker |
 | Database | Cloudflare D1 (`email-manager-auth`) for auth, via Drizzle ORM; email data + embeddings stored client-side in IndexedDB |
 | Auth | better-auth + Google OAuth |
-| Analytics | PostHog (`posthog-js`) |
+| Analytics | PostHog (`posthog-js`) plus Microsoft Clarity with the SPA root explicitly masked |
 | AI | `@huggingface/transformers` — runs client-side in the browser for semantic search |
 | CI/CD | GitHub Actions — `ci.yml` (lint/typecheck/test/build) on push/PR to `main`; `deploy.yml` deploys to Cloudflare Workers on manual `workflow_dispatch` only (production deploys are manual) |
 

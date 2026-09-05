@@ -11,7 +11,7 @@
 | Client DB | IndexedDB (`idb` v8) — `email-search` v2, stores `emails` + `meta` |
 | Auth | better-auth (Google OAuth, `gmail.readonly`, offline access) |
 | ML | `@huggingface/transformers` v4 (ONNX runtime, WASM, in-browser) |
-| Analytics | PostHog (`posthog-js`), web-vitals RUM |
+| Analytics | PostHog (`posthog-js`), web-vitals RUM, Microsoft Clarity with the SPA root explicitly masked |
 | Landing | Astro (static, overlaid into `dist/index.html`) |
 | Deploy | Cloudflare Workers (`email-manager`) |
 | Testing | Vitest (unit), Playwright (e2e) |
