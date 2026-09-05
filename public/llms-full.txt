@@ -1,10 +1,11 @@
-# Email Manager — full agent brief
+# Kinetic — full agent brief
 
 Gmail workspace with local semantic search — private email tooling.
+Formerly "Email Manager" (retired alias).
 
 ## Index
 
-# Email Manager
+# Kinetic
 
 Gmail workspace with local semantic search.
 
