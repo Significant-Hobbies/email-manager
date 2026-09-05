@@ -1,6 +1,7 @@
-# Email Manager
+# Kinetic
 
 > Gmail workspace with local semantic search — private email tooling.
+> Formerly "Email Manager" (retired alias).
 
 ## Product
 
