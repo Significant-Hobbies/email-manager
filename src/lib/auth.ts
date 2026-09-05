@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { oneTap } from 'better-auth/plugins';
 import { drizzle } from 'drizzle-orm/d1';
 import { user, session, account, verification } from '../db/schema';
+import { createPing } from './ping';
 
 export type AuthEnv = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +14,8 @@ export type AuthEnv = {
   AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;
   NODE_ENV?: string;
+  APP_HEALTH_INGEST_KEY?: string;
+  APP_HEALTH_ENVIRONMENT?: string;
 };
 
 const LOCAL_DEV_ORIGINS = [
@@ -53,6 +56,10 @@ export function isGoogleOAuthConfigured(env: AuthEnv): boolean {
 export function createAuth(env: AuthEnv) {
   const baseURL = getEnvValue(env, 'BETTER_AUTH_URL') ?? 'https://mail.significanthobbies.com';
   const secret = resolveSecret(env, baseURL);
+  const ping = createPing({
+    key: getEnvValue(env, 'APP_HEALTH_INGEST_KEY'),
+    environment: getEnvValue(env, 'APP_HEALTH_ENVIRONMENT'),
+  });
 
   return betterAuth({
     database: drizzleAdapter(drizzle(env.DB), {
@@ -74,6 +81,18 @@ export function createAuth(env: AuthEnv) {
     // First-time users must use OAuth once to grant gmail.readonly. One Tap is
     // intentionally limited to returning accounts that already hold that grant.
     plugins: [oneTap({ disableSignup: true })],
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (newUser) => {
+            await ping('signup', {
+              title: newUser.email,
+              props: { id: newUser.id, name: newUser.name },
+            });
+          },
+        },
+      },
+    },
     rateLimit: {
       enabled: false,
     },
