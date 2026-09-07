@@ -24,7 +24,7 @@ flowchart TD
     SPA["React SPA (/app)"]
     Store["MailboxStoreProvider<br/>(orchestrates sync + index)"]
     ONNX["embeddings.ts<br/>HuggingFace ONNX / WASM"]
-    IDB[("IndexedDB<br/>email-search v2")]
+    IDB[("IndexedDB<br/>account-scoped email cache v2")]
     Search["semantic-search.ts<br/>cosine similarity"]
     Triage["triage.ts<br/>regex heuristics"]
   end
@@ -106,7 +106,7 @@ one-click unsubscribe possible later.
 ## Step 3 — Caching into IndexedDB
 
 Fetched emails are persisted client-side by `src/lib/db.ts`, an `idb` wrapper
-around IndexedDB database `email-search` (currently **version 2**). It has two
+around IndexedDB database `email-search-account:<encoded user ID>` (currently **version 2**). It has two
 stores:
 
 - `emails` — keyed by `id`, with a `by-date` index. Each record is a

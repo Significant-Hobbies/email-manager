@@ -68,7 +68,7 @@ describe('ensureInboxEmails', () => {
     dbMocks.getAllEmails.mockResolvedValue(cached);
     dbMocks.getInboxSyncMeta.mockResolvedValue(CLEAN_META);
 
-    const result = await ensureInboxEmails({ target: 2 });
+    const result = await ensureInboxEmails({ accountId: 'fixture-a', target: 2 });
 
     expect(result.fetched).toBe(0);
     expect(result.total).toBe(2);
@@ -82,7 +82,7 @@ describe('ensureInboxEmails', () => {
     dbMocks.getAllEmails.mockResolvedValue(cached);
     dbMocks.getInboxSyncMeta.mockResolvedValue({ ...CLEAN_META, exhausted: true });
 
-    const result = await ensureInboxEmails({ target: 100 });
+    const result = await ensureInboxEmails({ accountId: 'fixture-a', target: 100 });
 
     expect(result.fetched).toBe(0);
     expect(globalThis.fetch).not.toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe('ensureInboxEmails', () => {
     ) as unknown as typeof fetch;
 
     const onProgress = vi.fn();
-    const result = await ensureInboxEmails({ target: 2, onProgress });
+    const result = await ensureInboxEmails({ accountId: 'fixture-a', target: 2, onProgress });
 
     expect(result.fetched).toBe(2);
     expect(result.total).toBe(2);
@@ -125,12 +125,13 @@ describe('ensureInboxEmails', () => {
         jsonResponse({ emails: [], nextPageToken: undefined })
       ) as unknown as typeof fetch;
 
-    const result = await ensureInboxEmails({ target: 50 });
+    const result = await ensureInboxEmails({ accountId: 'fixture-a', target: 50 });
 
     expect(result.fetched).toBe(0);
     // Meta should record exhausted=true with lastError null.
     expect(dbMocks.setInboxSyncMeta).toHaveBeenCalledWith(
-      expect.objectContaining({ exhausted: true, lastError: null })
+      expect.objectContaining({ exhausted: true, lastError: null }),
+      'fixture-a'
     );
   });
 
@@ -143,12 +144,13 @@ describe('ensureInboxEmails', () => {
       .fn()
       .mockResolvedValue(new Response('', { status: 401 })) as unknown as typeof fetch;
 
-    await expect(ensureInboxEmails({ target: 10 })).rejects.toThrow();
+    await expect(ensureInboxEmails({ accountId: 'fixture-a', target: 10 })).rejects.toThrow();
     // recordSyncError should have persisted an auth-classified lastError.
     expect(dbMocks.setInboxSyncMeta).toHaveBeenCalledWith(
       expect.objectContaining({
         lastError: expect.objectContaining({ stage: 'auth', class: 'auth' }),
-      })
+      }),
+      'fixture-a'
     );
   });
 
@@ -161,11 +163,14 @@ describe('ensureInboxEmails', () => {
       .fn()
       .mockRejectedValue(new Error('fetch failed')) as unknown as typeof fetch;
 
-    await expect(ensureInboxEmails({ target: 10 })).rejects.toThrow('fetch failed');
+    await expect(ensureInboxEmails({ accountId: 'fixture-a', target: 10 })).rejects.toThrow(
+      'fetch failed'
+    );
     expect(dbMocks.setInboxSyncMeta).toHaveBeenCalledWith(
       expect.objectContaining({
         lastError: expect.objectContaining({ stage: 'network', class: 'network' }),
-      })
+      }),
+      'fixture-a'
     );
   });
 });
@@ -199,7 +204,7 @@ describe('refreshInboxHead', () => {
       })
     ) as unknown as typeof fetch;
 
-    const fetched = await refreshInboxHead({ maxEmails: 10 });
+    const fetched = await refreshInboxHead({ accountId: 'fixture-a', maxEmails: 10 });
     expect(fetched).toBe(2);
     expect(dbMocks.storeEmails).toHaveBeenCalledTimes(1);
   });
@@ -212,7 +217,7 @@ describe('refreshInboxHead', () => {
       .fn()
       .mockResolvedValue(jsonResponse({ emails: [] })) as unknown as typeof fetch;
 
-    const fetched = await refreshInboxHead();
+    const fetched = await refreshInboxHead({ accountId: 'fixture-a' });
     expect(fetched).toBe(0);
     expect(dbMocks.storeEmails).not.toHaveBeenCalled();
   });
@@ -232,7 +237,7 @@ describe('refreshInboxHead', () => {
       .mockResolvedValueOnce(page(100))
       .mockResolvedValueOnce(page(50)) as unknown as typeof fetch;
 
-    const fetched = await refreshInboxHead({ maxEmails: 150 });
+    const fetched = await refreshInboxHead({ accountId: 'fixture-a', maxEmails: 150 });
     expect(fetched).toBe(150);
     expect(dbMocks.storeEmails).toHaveBeenCalledTimes(2);
   });

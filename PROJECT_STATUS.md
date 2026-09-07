@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-08-31
+Last updated: 2026-09-07
 
 ## Why / What
 
@@ -50,6 +50,15 @@ Last updated: 2026-08-31
 - `https://mail.significanthobbies.com/api/auth/callback/google`
 
 ## Timeline
+
+- **2026-09-07:** Local mailbox storage now requires explicit authenticated
+  account scope, including sync/index/search/digest and hover caches. Account
+  changes remount mailbox state, and stale-account API requests are rejected
+  before token lookup. Legacy owner-unknown cache data remains untouched.
+  Actual browser IndexedDB was verified with synthetic mail and embeddings;
+  no live mail was accessed and no deployment or unsubscribe ran. See
+  [ADR-010](docs/architecture/decisions.md#adr-010-explicit-account-ownership-for-browser-mail-caches-2026-09-07)
+  and remaining live qualification [#54](https://github.com/Significant-Hobbies/email-manager/issues/54).
 
 - **2026-08-31:** Added source-ready product-owned Microsoft Clarity tracking
   to the public marketing landing only. The authenticated Gmail application is
@@ -116,14 +125,14 @@ Last updated: 2026-08-31
 - `GET /` serves Astro landing; signed-in users 302 → `/app`.
 - SPA shell at `/app`, `/about`, `/privacy` from `dist/spa-index.html`.
 - Hono worker handles `/api/*`: better-auth, Gmail proxy reads, unsubscribe POST.
-- Gmail fetched on demand via worker with 429 exponential backoff (1s/2s/4s); cached in IndexedDB `email-search` v2.
+- Gmail fetched on demand via worker with 429 exponential backoff (1s/2s/4s); cached in IndexedDB `email-search-account:<encoded user ID>` v2.
 - Embeddings generated in-browser with Hugging Face Transformers/ONNX; semantic search client-side.
 - D1 (`email-manager-auth`) stores only better-auth tables — no mailbox data.
 - Build: Vite → `dist/spa-index.html`; Astro landing overlaid to `dist/index.html` via `scripts/overlay-landing.mjs`.
 
 ### IndexedDB schema (`src/lib/db.ts`)
 
-- Database: `email-search` v2; store `emails` keyed by `id` (index `by-date`) + store `meta` (added in v2) holding the `inbox-sync` cursor.
+- Database: `email-search-account:<encoded user ID>` v2; store `emails` keyed by `id` (index `by-date`) + store `meta` (added in v2) holding the `inbox-sync` cursor.
 - Record: `StoredEmail` = `Email` + `embedding: number[] | null`.
 - Helpers: `storeEmails`, `getAllEmails`, `getEmailsWithoutEmbedding`, `getEmailCount`, `getIndexedCount`, `getInboxSyncMeta`, `setInboxSyncMeta`.
 

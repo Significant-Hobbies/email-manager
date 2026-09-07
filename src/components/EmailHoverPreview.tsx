@@ -1,5 +1,7 @@
 'use client';
 
+import { useMailboxStore } from '@/components/MailboxStoreProvider';
+
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -18,12 +20,14 @@ interface Props {
 }
 
 export function EmailHoverPreview({ email, children, className }: Props) {
+  const { accountId } = useMailboxStore();
+  const cacheKey = JSON.stringify([accountId, email.id]);
   const anchorRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | undefined>(undefined);
   const openTimerRef = useRef<number | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState<Email | null>(bodyCache.get(email.id) ?? null);
+  const [detail, setDetail] = useState<Email | null>(bodyCache.get(cacheKey) ?? null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const updatePosition = useCallback(() => {
@@ -47,7 +51,7 @@ export function EmailHoverPreview({ email, children, className }: Props) {
   }, []);
 
   const loadDetail = useCallback(async () => {
-    const cached = bodyCache.get(email.id);
+    const cached = bodyCache.get(cacheKey);
     if (cached?.body) {
       setDetail(cached);
       return;
@@ -55,17 +59,19 @@ export function EmailHoverPreview({ email, children, className }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/emails/${email.id}`);
+      const res = await fetch(`/api/emails/${email.id}`, {
+        headers: { 'X-Mailbox-Account-Id': accountId },
+      });
       if (!res.ok) return;
       const data = (await res.json()) as Email;
-      bodyCache.set(email.id, data);
+      bodyCache.set(cacheKey, data);
       setDetail(data);
     } catch {
       // Preview is best-effort — never block the list.
     } finally {
       setLoading(false);
     }
-  }, [email.id]);
+  }, [email.id, accountId, cacheKey]);
 
   const handleEnter = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);

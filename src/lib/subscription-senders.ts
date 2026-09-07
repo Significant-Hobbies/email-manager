@@ -23,7 +23,7 @@ export function uniqueSubscriptionSenders(emails: Email[]): Email[] {
     });
 }
 
-export async function loadSubscriptionSenders(): Promise<Email[]> {
-  const all = await getAllEmails();
+export async function loadSubscriptionSenders(accountId: string): Promise<Email[]> {
+  const all = await getAllEmails(accountId);
   return uniqueSubscriptionSenders(all);
 }

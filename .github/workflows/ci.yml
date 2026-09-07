@@ -25,5 +25,6 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pip install lizard==1.23.0
       - run: pnpm quality
+      - run: pnpm verify:local-mailbox
       - run: pnpm build
       - run: pnpm check:docs

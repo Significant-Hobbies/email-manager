@@ -5,7 +5,8 @@ import type { Email } from '@/lib/gmail';
 import { useMailboxStore } from '@/components/MailboxStoreProvider';
 
 export function Subscriptions() {
-  const { total, subscriptionSenders, ready, syncing, refresh, syncInbox } = useMailboxStore();
+  const { accountId, total, subscriptionSenders, ready, syncing, refresh, syncInbox } =
+    useMailboxStore();
   const [error, setError] = useState<string | null>(null);
   const [unsubbing, setUnsubbing] = useState<Set<string>>(new Set());
   const [unsubbed, setUnsubbed] = useState<Set<string>>(new Set());
@@ -42,7 +43,10 @@ export function Subscriptions() {
 
     setUnsubbing((prev) => new Set(prev).add(email.id));
     try {
-      const res = await fetch(`/api/emails/${email.id}/unsubscribe`, { method: 'POST' });
+      const res = await fetch(`/api/emails/${email.id}/unsubscribe`, {
+        method: 'POST',
+        headers: { 'X-Mailbox-Account-Id': accountId },
+      });
       const data = await res.json();
 
       if (data.ok) {

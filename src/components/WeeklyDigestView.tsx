@@ -28,7 +28,8 @@ function revisitReasonLabel(reason: 'starred_stale' | 'long_thread_stale'): stri
 }
 
 export function WeeklyDigestView({ onOpenSender, onOpenThread, embedded = false }: Props) {
-  const { total, lastSyncedAt, isStale, syncing, ensureFreshInbox, syncInbox } = useMailboxStore();
+  const { accountId, total, lastSyncedAt, isStale, syncing, ensureFreshInbox, syncInbox } =
+    useMailboxStore();
   const [digest, setDigest] = useState<WeeklyDigest | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export function WeeklyDigestView({ onOpenSender, onOpenThread, embedded = false 
         await ensureFreshInbox();
       }
 
-      const localEmails = await getInboxEmailsSorted();
+      const localEmails = await getInboxEmailsSorted(accountId);
       if (localEmails.length === 0) {
         setDigest(null);
         setError(

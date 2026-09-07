@@ -36,7 +36,8 @@
     "quality:duplication": "jscpd src scripts --format javascript,typescript --min-lines 8 --min-tokens 60 --mode strict --ignore '**/*.test.*,**/*.spec.*,**/node_modules/**,**/coverage/**,**/dist/**' --threshold 0 --silent --no-tips",
     "quality:cycles": "knip --cycles",
     "quality:dependencies": "node scripts/check-code-health.mjs dependencies",
-    "quality": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage && pnpm run quality:unused && pnpm run quality:complexity && pnpm run quality:duplication && pnpm run quality:cycles && pnpm run quality:dependencies"
+    "quality": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage && pnpm run quality:unused && pnpm run quality:complexity && pnpm run quality:duplication && pnpm run quality:cycles && pnpm run quality:dependencies",
+    "verify:local-mailbox": "node scripts/verify-local-mailbox.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "4.2.0",

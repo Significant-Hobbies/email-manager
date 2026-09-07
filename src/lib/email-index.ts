@@ -3,13 +3,14 @@ import { embed, prepareEmailText } from './embeddings';
 
 export const SEMANTIC_INDEX_LIMIT = 500;
 
-export async function indexEmailsForSearch(options?: {
+export async function indexEmailsForSearch(options: {
+  accountId: string;
   limit?: number;
   onProgress?: (message: string) => void;
   signal?: { aborted?: boolean };
 }): Promise<{ indexed: number; remaining: number }> {
   const limit = options?.limit ?? SEMANTIC_INDEX_LIMIT;
-  const unembedded = await getEmailsWithoutEmbedding();
+  const unembedded = await getEmailsWithoutEmbedding(options.accountId);
   const toIndex = unembedded
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, limit);
@@ -26,7 +27,7 @@ export async function indexEmailsForSearch(options?: {
     options?.onProgress?.(`Indexing ${i + 1} of ${toIndex.length}…`);
     const text = prepareEmailText(toIndex[i]);
     const embedding = await embed(text);
-    await storeEmail({ ...toIndex[i], embedding });
+    await storeEmail({ ...toIndex[i], embedding }, options.accountId);
   }
 
   const stillPending = Math.max(0, unembedded.length - toIndex.length);

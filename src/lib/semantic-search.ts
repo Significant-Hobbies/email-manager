@@ -17,8 +17,8 @@ function dotProduct(a: number[], b: number[]): number {
   return sum;
 }
 
-export async function semanticSearch(query: string): Promise<SearchResult[]> {
-  const [queryEmbedding, emails] = await Promise.all([embed(query), getAllEmails()]);
+export async function semanticSearch(query: string, accountId: string): Promise<SearchResult[]> {
+  const [queryEmbedding, emails] = await Promise.all([embed(query), getAllEmails(accountId)]);
 
   const queryLower = query.toLowerCase();
 

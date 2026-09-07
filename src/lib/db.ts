@@ -35,15 +35,18 @@ interface EmailDB extends DBSchema {
   };
 }
 
-const DB_NAME = 'email-search';
+const DB_NAME = 'email-search-account';
 const DB_VERSION = 2;
 const INBOX_SYNC_META_KEY = 'inbox-sync';
 
-let dbPromise: Promise<IDBPDatabase<EmailDB>> | null = null;
+const databases = new Map<string, Promise<IDBPDatabase<EmailDB>>>();
 
-function getDB() {
+function getDB(accountId: string) {
+  if (!accountId?.trim())
+    throw new Error('An authenticated account is required for mailbox storage');
+  let dbPromise = databases.get(accountId);
   if (!dbPromise) {
-    dbPromise = openDB<EmailDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<EmailDB>(`${DB_NAME}:${encodeURIComponent(accountId)}`, DB_VERSION, {
       upgrade(db, oldVersion) {
         if (!db.objectStoreNames.contains('emails')) {
           const store = db.createObjectStore('emails', { keyPath: 'id' });
@@ -54,56 +57,57 @@ function getDB() {
         }
       },
     });
+    databases.set(accountId, dbPromise);
   }
   return dbPromise;
 }
 
-export async function storeEmails(emails: StoredEmail[]) {
-  const db = await getDB();
+export async function storeEmails(emails: StoredEmail[], accountId: string) {
+  const db = await getDB(accountId);
   const tx = db.transaction('emails', 'readwrite');
   await Promise.all([...emails.map((e) => tx.store.put(e)), tx.done]);
 }
 
-export async function storeEmail(email: StoredEmail) {
-  const db = await getDB();
+export async function storeEmail(email: StoredEmail, accountId: string) {
+  const db = await getDB(accountId);
   await db.put('emails', email);
 }
 
-export async function getAllEmails(): Promise<StoredEmail[]> {
-  const db = await getDB();
+export async function getAllEmails(accountId: string): Promise<StoredEmail[]> {
+  const db = await getDB(accountId);
   return db.getAll('emails');
 }
 
-export async function getInboxEmailsSorted(): Promise<StoredEmail[]> {
-  const all = await getAllEmails();
+export async function getInboxEmailsSorted(accountId: string): Promise<StoredEmail[]> {
+  const all = await getAllEmails(accountId);
   return all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export async function getEmailsWithoutEmbedding(): Promise<StoredEmail[]> {
-  const db = await getDB();
+export async function getEmailsWithoutEmbedding(accountId: string): Promise<StoredEmail[]> {
+  const db = await getDB(accountId);
   const all = await db.getAll('emails');
   return all.filter((e) => !e.embedding);
 }
 
-export async function getEmailCount(): Promise<number> {
-  const db = await getDB();
+export async function getEmailCount(accountId: string): Promise<number> {
+  const db = await getDB(accountId);
   return db.count('emails');
 }
 
-export async function getIndexedCount(): Promise<number> {
-  const db = await getDB();
+export async function getIndexedCount(accountId: string): Promise<number> {
+  const db = await getDB(accountId);
   const all = await db.getAll('emails');
   return all.filter((e) => e.embedding).length;
 }
 
-export async function getPendingIndexCount(): Promise<number> {
-  const db = await getDB();
+export async function getPendingIndexCount(accountId: string): Promise<number> {
+  const db = await getDB(accountId);
   const all = await db.getAll('emails');
   return all.filter((e) => !e.embedding).length;
 }
 
-export async function getInboxSyncMeta(): Promise<InboxSyncMeta> {
-  const db = await getDB();
+export async function getInboxSyncMeta(accountId: string): Promise<InboxSyncMeta> {
+  const db = await getDB(accountId);
   const stored = await db.get('meta', INBOX_SYNC_META_KEY);
   return (
     stored ?? {
@@ -114,7 +118,7 @@ export async function getInboxSyncMeta(): Promise<InboxSyncMeta> {
   );
 }
 
-export async function setInboxSyncMeta(meta: InboxSyncMeta): Promise<void> {
-  const db = await getDB();
+export async function setInboxSyncMeta(meta: InboxSyncMeta, accountId: string): Promise<void> {
+  const db = await getDB(accountId);
   await db.put('meta', meta, INBOX_SYNC_META_KEY);
 }

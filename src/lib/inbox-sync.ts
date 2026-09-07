@@ -31,31 +31,42 @@ export function classifySyncError(err: unknown): { stage: SyncErrorStage; class:
   return { stage: 'fetch_page', class: 'unknown' };
 }
 
-async function recordSyncError(error: unknown, meta: InboxSyncMeta): Promise<void> {
+async function recordSyncError(
+  error: unknown,
+  meta: InboxSyncMeta,
+  accountId: string
+): Promise<void> {
   const { stage, class: errorClass } = classifySyncError(error);
-  await setInboxSyncMeta({
-    ...meta,
-    lastError: { stage, class: errorClass, at: new Date().toISOString() },
-  });
+  await setInboxSyncMeta(
+    {
+      ...meta,
+      lastError: { stage, class: errorClass, at: new Date().toISOString() },
+    },
+    accountId
+  );
 }
 
 async function fetchInboxPage(
   params: URLSearchParams,
   signal: AbortSignal | undefined,
-  failureMeta: InboxSyncMeta
+  failureMeta: InboxSyncMeta,
+  accountId: string
 ): Promise<Response> {
   let response: Response;
   try {
-    response = await fetch(`/api/emails?${params}`, { signal });
+    response = await fetch(`/api/emails?${params}`, {
+      signal,
+      headers: { 'X-Mailbox-Account-Id': accountId },
+    });
   } catch (error) {
-    await recordSyncError(error, failureMeta);
+    await recordSyncError(error, failureMeta, accountId);
     throw error;
   }
 
   if (!response.ok) {
     const error = new Error(`API error: ${response.status}`) as Error & { status?: number };
     error.status = response.status;
-    await recordSyncError(error, failureMeta);
+    await recordSyncError(error, failureMeta, accountId);
     throw error;
   }
 
@@ -73,6 +84,7 @@ function withCachedEmbeddings(
 }
 
 export interface EnsureInboxOptions {
+  accountId: string;
   target: number;
   metadataOnly?: boolean;
   onProgress?: (message: string) => void;
@@ -87,10 +99,10 @@ export interface EnsureInboxResult {
 
 /** Fetch inbox pages from Gmail and persist to IndexedDB until target is met or pages end. */
 export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<EnsureInboxResult> {
-  const { target, metadataOnly = false, onProgress, signal } = options;
-  const existing = await getAllEmails();
+  const { target, metadataOnly = false, onProgress, signal, accountId } = options;
+  const existing = await getAllEmails(accountId);
   const embeddingById = new Map(existing.map((e) => [e.id, e.embedding]));
-  const meta = await getInboxSyncMeta();
+  const meta = await getInboxSyncMeta(accountId);
 
   let fetchedThisRun = 0;
   let pageToken = meta.exhausted ? undefined : meta.nextPageToken;
@@ -112,10 +124,10 @@ export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<En
 
   onProgress?.(`Syncing inbox… ${startingCount}/${target}`);
 
-  while ((await getEmailCount()) < target && !exhausted) {
+  while ((await getEmailCount(accountId)) < target && !exhausted) {
     if (signal?.aborted) break;
 
-    const currentCount = await getEmailCount();
+    const currentCount = await getEmailCount(accountId);
     const params = new URLSearchParams({
       label: 'INBOX',
       maxResults: String(Math.min(SYNC_MAX_PAGE, target - currentCount)),
@@ -123,26 +135,35 @@ export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<En
     if (metadataOnly) params.set('metadataOnly', 'true');
     if (pageToken) params.set('pageToken', pageToken);
 
-    const res = await fetchInboxPage(params, signal, {
-      ...meta,
-      nextPageToken: pageToken,
-      exhausted,
-      lastSyncedAt: meta.lastSyncedAt,
-    });
+    const res = await fetchInboxPage(
+      params,
+      signal,
+      {
+        ...meta,
+        nextPageToken: pageToken,
+        exhausted,
+        lastSyncedAt: meta.lastSyncedAt,
+      },
+      accountId
+    );
 
     const data = await res.json();
     const batch: Email[] = data.emails ?? [];
 
     if (batch.length > 0) {
       try {
-        await storeEmails(withCachedEmbeddings(batch, embeddingById));
+        await storeEmails(withCachedEmbeddings(batch, embeddingById), accountId);
       } catch (storeErr) {
-        await recordSyncError(storeErr, {
-          ...meta,
-          nextPageToken: pageToken,
-          exhausted,
-          lastSyncedAt: meta.lastSyncedAt,
-        });
+        await recordSyncError(
+          storeErr,
+          {
+            ...meta,
+            nextPageToken: pageToken,
+            exhausted,
+            lastSyncedAt: meta.lastSyncedAt,
+          },
+          accountId
+        );
         throw storeErr;
       }
       fetchedThisRun += batch.length;
@@ -152,15 +173,18 @@ export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<En
     pageToken = data.nextPageToken ?? undefined;
     exhausted = batch.length === 0 || !pageToken;
 
-    await setInboxSyncMeta({
-      nextPageToken: pageToken,
-      exhausted,
-      lastSyncedAt: new Date().toISOString(),
-      lastError: null,
-    });
+    await setInboxSyncMeta(
+      {
+        nextPageToken: pageToken,
+        exhausted,
+        lastSyncedAt: new Date().toISOString(),
+        lastError: null,
+      },
+      accountId
+    );
   }
 
-  const all = await getAllEmails();
+  const all = await getAllEmails(accountId);
   return {
     emails: all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     fetched: fetchedThisRun,
@@ -172,14 +196,16 @@ export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<En
  * Re-fetch the newest inbox messages from Gmail and merge into the local cache.
  * Always starts from the top of the inbox so returning users see fresh mail.
  */
-export async function refreshInboxHead(options?: {
+export async function refreshInboxHead(options: {
+  accountId: string;
   maxEmails?: number;
   metadataOnly?: boolean;
   onProgress?: (message: string) => void;
   signal?: AbortSignal;
 }): Promise<number> {
+  const accountId = options.accountId;
   const maxEmails = options?.maxEmails ?? REFRESH_HEAD_COUNT;
-  const existing = await getAllEmails();
+  const existing = await getAllEmails(accountId);
   const embeddingById = new Map(existing.map((e) => [e.id, e.embedding]));
 
   let fetched = 0;
@@ -187,7 +213,7 @@ export async function refreshInboxHead(options?: {
 
   options?.onProgress?.('Checking for new mail…');
 
-  const meta = await getInboxSyncMeta();
+  const meta = await getInboxSyncMeta(accountId);
 
   do {
     if (options?.signal?.aborted) break;
@@ -199,16 +225,21 @@ export async function refreshInboxHead(options?: {
     if (options?.metadataOnly) params.set('metadataOnly', 'true');
     if (pageToken) params.set('pageToken', pageToken);
 
-    const res = await fetchInboxPage(params, options?.signal, {
-      ...meta,
-      lastSyncedAt: meta.lastSyncedAt,
-    });
+    const res = await fetchInboxPage(
+      params,
+      options?.signal,
+      {
+        ...meta,
+        lastSyncedAt: meta.lastSyncedAt,
+      },
+      accountId
+    );
 
     const data = await res.json();
     const batch: Email[] = data.emails ?? [];
 
     if (batch.length > 0) {
-      await storeEmails(withCachedEmbeddings(batch, embeddingById));
+      await storeEmails(withCachedEmbeddings(batch, embeddingById), accountId);
       fetched += batch.length;
       options?.onProgress?.(`Updated ${fetched} recent emails…`);
     }
@@ -217,11 +248,14 @@ export async function refreshInboxHead(options?: {
     if (batch.length === 0 || !pageToken) break;
   } while (fetched < maxEmails);
 
-  await setInboxSyncMeta({
-    ...meta,
-    lastSyncedAt: new Date().toISOString(),
-    lastError: null,
-  });
+  await setInboxSyncMeta(
+    {
+      ...meta,
+      lastSyncedAt: new Date().toISOString(),
+      lastError: null,
+    },
+    accountId
+  );
 
   return fetched;
 }

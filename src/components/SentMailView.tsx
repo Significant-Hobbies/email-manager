@@ -1,5 +1,7 @@
 'use client';
 
+import { useMailboxStore } from '@/components/MailboxStoreProvider';
+
 import { RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Email } from '@/lib/gmail';
@@ -169,36 +171,42 @@ function SentMailListBody(props: {
 }
 
 function useSentMail() {
+  const { accountId } = useMailboxStore();
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
 
-  const fetchSent = useCallback(async (pageToken?: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({ label: 'SENT', replyStatus: 'true' });
-      if (pageToken) params.set('pageToken', pageToken);
+  const fetchSent = useCallback(
+    async (pageToken?: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({ label: 'SENT', replyStatus: 'true' });
+        if (pageToken) params.set('pageToken', pageToken);
 
-      const res = await fetch(`/api/emails?${params}`);
-      if (!res.ok) {
-        setError(`Failed to load sent mail (${res.status})`);
-        return;
+        const res = await fetch(`/api/emails?${params}`, {
+          headers: { 'X-Mailbox-Account-Id': accountId },
+        });
+        if (!res.ok) {
+          setError(`Failed to load sent mail (${res.status})`);
+          return;
+        }
+
+        const data = await res.json();
+        const batch: Email[] = (data.emails ?? []).filter(
+          (email: Email) => !isUnsubscribeSentEmail(email)
+        );
+        setEmails((prev) => (pageToken ? [...prev, ...batch] : batch));
+        setNextPageToken(data.nextPageToken ?? null);
+      } catch {
+        setError('Failed to load sent mail');
+      } finally {
+        setLoading(false);
       }
-
-      const data = await res.json();
-      const batch: Email[] = (data.emails ?? []).filter(
-        (email: Email) => !isUnsubscribeSentEmail(email)
-      );
-      setEmails((prev) => (pageToken ? [...prev, ...batch] : batch));
-      setNextPageToken(data.nextPageToken ?? null);
-    } catch {
-      setError('Failed to load sent mail');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [accountId]
+  );
 
   useEffect(() => {
     void fetchSent();

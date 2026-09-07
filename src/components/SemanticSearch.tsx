@@ -20,7 +20,7 @@ interface Props {
 
 const STRIP_ANGLE_RE = new RegExp('<[^>]+>');
 
-function useSemanticSearch(indexed: number) {
+function useSemanticSearch(indexed: number, accountId: string) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -46,7 +46,7 @@ function useSemanticSearch(indexed: number) {
     setSearching(true);
     setSearchError(null);
     try {
-      const res = await semanticSearch(q);
+      const res = await semanticSearch(q, accountId);
       if (mountedRef.current) setResults(res);
     } catch (err) {
       console.error('Semantic search error:', err);
@@ -280,6 +280,7 @@ function SearchInput({
 
 export function SemanticSearch({ onSelect }: Props) {
   const {
+    accountId,
     total,
     indexed,
     pendingIndex,
@@ -290,8 +291,10 @@ export function SemanticSearch({ onSelect }: Props) {
     indexForSearch,
     refresh,
   } = useMailboxStore();
-  const { query, setQuery, results, searching, searchError, performSearch } =
-    useSemanticSearch(indexed);
+  const { query, setQuery, results, searching, searchError, performSearch } = useSemanticSearch(
+    indexed,
+    accountId
+  );
   const mountedRef = useRef(true);
 
   useEffect(() => {

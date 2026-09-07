@@ -64,12 +64,12 @@ export default function HomeClient() {
     );
   }
 
-  if (!session) {
+  if (!session?.user) {
     return <SignInScreen />;
   }
 
   return (
-    <MailboxStoreProvider>
+    <MailboxStoreProvider key={session.user.id} accountId={session.user.id}>
       <AuthenticatedHome sessionData={sessionData!} />
     </MailboxStoreProvider>
   );
@@ -125,6 +125,7 @@ function useEmailFetch(
 ): EmailFetchState & {
   fetchEmails: (pageToken?: string) => void;
 } {
+  const { accountId } = useMailboxStore();
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -146,9 +147,11 @@ function useEmailFetch(
         if (search) params.set('q', search);
         if (pageToken) params.set('pageToken', pageToken);
 
-        const res = await fetch(`/api/emails?${params}`);
+        const res = await fetch(`/api/emails?${params}`, {
+          headers: { 'X-Mailbox-Account-Id': accountId },
+        });
         if (res.status === 401) {
-          signOut();
+          setError('Your mailbox session changed or expired. Reload to sign in again.');
           return;
         }
         if (!res.ok) {
@@ -182,7 +185,7 @@ function useEmailFetch(
         fetchingRef.current = false;
       }
     },
-    [view, search]
+    [view, search, accountId]
   );
 
   return { emails, loading, error, nextPageToken, fetchEmails };

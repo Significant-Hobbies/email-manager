@@ -218,3 +218,28 @@ For product-phase context see [`../retros/`](../retros/). For PRD-level detail s
 **Tradeoffs:**
 - Inbox is only as fresh as the last manual load. New mail is not surfaced in real time.
 - Large inboxes require multiple explicit "load more" actions before analytics/digest have enough data.
+
+
+## ADR-010: Explicit account ownership for browser mail caches (2026-09-07)
+
+The previous global `email-search` cache could expose another signed-in user's
+messages, embeddings and pagination cursor on the same browser. Each storage
+operation now requires the authenticated user ID; the database is
+`email-search-account:<encoded user ID>` with the existing v2 schema. Sync,
+indexing, search and digest capture that identity explicitly. An account-keyed
+provider resets visible mailbox and selected-message state; hover body caches
+also include account identity. Mailbox requests identify their expected account,
+and token lookup rejects a mismatching session before contacting Gmail.
+
+The legacy unscoped database is neither opened nor deleted. Its ownership is
+unknown, so it must not be automatically migrated into the current account.
+Users will resync a fresh scoped cache after this source is deployed. This is
+application account isolation, not encryption or protection from someone who
+controls the browser profile and its developer tools.
+
+`pnpm verify:local-mailbox` uses a fresh Chrome context, actual IndexedDB and
+application sync/index/search/digest modules. Gmail responses and embeddings are
+explicit fixtures; external traffic and mutations are blocked. It verifies
+same-ID account separation, cursors, delayed refresh completion, body reads and
+unscoped rejection. Live OAuth, provider data and model ranking quality remain
+separate qualification gates. Implementation tracking: [#53](https://github.com/Significant-Hobbies/email-manager/issues/53).

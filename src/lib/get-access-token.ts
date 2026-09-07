@@ -4,6 +4,8 @@ export async function getGmailAccessToken(env: AuthEnv, headers: Headers): Promi
   const auth = createAuth(env);
   const session = await auth.api.getSession({ headers });
   if (!session?.user?.id) return null;
+  const expectedAccount = headers.get('X-Mailbox-Account-Id');
+  if (expectedAccount && expectedAccount !== session.user.id) return null;
 
   // better-auth's getAccessToken returns the stored Google access token
   // and transparently refreshes it (via the stored refresh token —

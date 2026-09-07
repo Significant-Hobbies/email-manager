@@ -146,14 +146,36 @@ See `docs/README.md` for the full knowledge-system layout (product, architecture
 decisions, development, operations, learnings).
 
 <!-- ACTIVE-AI-TASK-LOG:START -->
-## Active AI Task Log
+## Historical AI Task Log
 
-This section is maintained by the SaaS Maker Active-AI product/design loop so future agents do not reopen duplicate UI tasks.
+These historical receipts are context, not a current acceptance checklist.
 
 - Business lane: P2 Watch / maintenance
 - Rule: do not create another broad "improve the UI" task unless the acceptance criteria differ materially from the tasks listed here.
-- Source of truth for task status: SaaS Maker task board. README entries are durable context only.
+- Current work is tracked in this repository’s GitHub Issues; the SaaS Maker task board is retired.
 
 - 2026-05-26: Added "Automation Safety" section (task 74061467) — P2 trust maintenance. Documents read-only guarantee and review-before-send policy for any future automation features.
 - 2026-06-20: De-OpenNext migration — Vite SPA + Hono worker per fleet PRD §6.2.
 <!-- ACTIVE-AI-TASK-LOG:END -->
+
+## Local mailbox qualification — 2026-09-07
+
+`pnpm verify:local-mailbox` exercises actual IndexedDB and application
+sync/index/search/digest code in an isolated Chrome context. Mail and embeddings
+are synthetic fixtures; the harness blocks external requests and permits only
+GET for its fake mailbox endpoint. It verifies separate accounts with colliding
+message IDs, independent cursors, body reads, delayed refresh ownership and
+rejection of unscoped storage. It closes the browser and local server on exit.
+Chrome must be installed; no provider credentials or model download are used.
+
+The account isolation decision and legacy-cache handling are documented in
+[ADR-010](docs/architecture/decisions.md#adr-010-explicit-account-ownership-for-browser-mail-caches-2026-09-07).
+This is a read-only product: no compose, draft, reply, archive or delete flow
+exists. Unsubscribe remains an explicit user action and was not exercised.
+
+The audit began with zero open issues and PRs. Implementation is tracked in
+[#53](https://github.com/Significant-Hobbies/email-manager/issues/53); remaining
+authorized deployment, real OAuth/account switching, mailbox/model journey and
+domain qualification are consolidated in
+[#54](https://github.com/Significant-Hobbies/email-manager/issues/54).
+Historical completed task rows were preserved without re-certifying them.

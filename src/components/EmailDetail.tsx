@@ -1,5 +1,7 @@
 'use client';
 
+import { useMailboxStore } from '@/components/MailboxStoreProvider';
+
 import { ArrowLeft, Copy, ExternalLink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { trackCoreAction } from '@/lib/analytics';
@@ -25,6 +27,7 @@ function EmailDetailToolbar({
   onBack: () => void;
   showBack: boolean;
 }) {
+  const { accountId } = useMailboxStore();
   const [acting, setActing] = useState(false);
 
   async function handleCopySubject() {
@@ -38,7 +41,10 @@ function EmailDetailToolbar({
   async function handleOneClickUnsubscribe() {
     setActing(true);
     try {
-      const res = await fetch(`/api/emails/${email.id}/unsubscribe`, { method: 'POST' });
+      const res = await fetch(`/api/emails/${email.id}/unsubscribe`, {
+        method: 'POST',
+        headers: { 'X-Mailbox-Account-Id': accountId },
+      });
       const data = await res.json();
       if (data.ok) {
         trackCoreAction('unsubscribed');

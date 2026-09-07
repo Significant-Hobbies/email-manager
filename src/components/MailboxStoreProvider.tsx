@@ -26,6 +26,7 @@ import { loadSubscriptionSenders } from '@/lib/subscription-senders';
 import { isInboxStale } from '@/lib/sync-age';
 
 interface MailboxStoreContextValue {
+  accountId: string;
   emails: StoredEmail[];
   total: number;
   indexed: number;
@@ -107,7 +108,7 @@ interface MailboxState {
   refresh: () => Promise<void>;
 }
 
-function useMailboxState(): MailboxState {
+function useMailboxState(accountId: string): MailboxState {
   const [emails, setEmails] = useState<StoredEmail[]>([]);
   const [total, setTotal] = useState(0);
   const [indexed, setIndexed] = useState(0);
@@ -124,12 +125,12 @@ function useMailboxState(): MailboxState {
 
   const refresh = useCallback(async () => {
     const [sorted, t, i, pending, senders, meta] = await Promise.all([
-      getInboxEmailsSorted(),
-      getEmailCount(),
-      getIndexedCount(),
-      getPendingIndexCount(),
-      loadSubscriptionSenders(),
-      getInboxSyncMeta(),
+      getInboxEmailsSorted(accountId),
+      getEmailCount(accountId),
+      getIndexedCount(accountId),
+      getPendingIndexCount(accountId),
+      loadSubscriptionSenders(accountId),
+      getInboxSyncMeta(accountId),
     ]);
     if (!mountedRef.current) return;
     setEmails(sorted);
@@ -140,7 +141,7 @@ function useMailboxState(): MailboxState {
     setLastSyncedAt(meta.lastSyncedAt);
     setInboxExhausted(meta.exhausted);
     setReady(true);
-  }, []);
+  }, [accountId]);
 
   return {
     emails,
@@ -163,7 +164,7 @@ function useMailboxState(): MailboxState {
   };
 }
 
-function useSyncOperations(state: MailboxState) {
+function useSyncOperations(state: MailboxState, accountId: string) {
   const { mountedRef, syncLockRef, setSyncing, setIndexing, setProgress, refresh } = state;
 
   const runSync = useCallback(
@@ -177,6 +178,7 @@ function useSyncOperations(state: MailboxState) {
         'Sync failed',
         () =>
           ensureInboxEmails({
+            accountId,
             target,
             metadataOnly,
             onProgress: (m) => {
@@ -185,7 +187,7 @@ function useSyncOperations(state: MailboxState) {
           }),
         refresh
       ),
-    [refresh, setProgress, setSyncing, syncLockRef, mountedRef]
+    [refresh, setProgress, setSyncing, syncLockRef, mountedRef, accountId]
   );
 
   const runRefreshHead = useCallback(
@@ -199,13 +201,14 @@ function useSyncOperations(state: MailboxState) {
         'Refresh failed',
         () =>
           refreshInboxHead({
+            accountId,
             onProgress: (m) => {
               if (mountedRef.current) setProgress(m);
             },
           }),
         refresh
       ),
-    [refresh, setProgress, setSyncing, syncLockRef, mountedRef]
+    [refresh, setProgress, setSyncing, syncLockRef, mountedRef, accountId]
   );
 
   const syncInbox = useCallback(
@@ -230,6 +233,7 @@ function useSyncOperations(state: MailboxState) {
         'Indexing failed',
         () =>
           indexEmailsForSearch({
+            accountId,
             limit: SEMANTIC_INDEX_LIMIT,
             onProgress: (m) => {
               if (mountedRef.current) setProgress(m);
@@ -237,7 +241,7 @@ function useSyncOperations(state: MailboxState) {
           }),
         refresh
       ),
-    [refresh, setProgress, setIndexing, syncLockRef, mountedRef]
+    [refresh, setProgress, setIndexing, syncLockRef, mountedRef, accountId]
   );
 
   return { runSync, runRefreshHead, syncInbox, refreshInbox, indexForSearch };
@@ -249,11 +253,12 @@ function useInboxQueries(
   runSync: (target: number, metadataOnly?: boolean) => Promise<void>,
   syncInbox: () => Promise<void>,
   refreshInbox: () => Promise<void>,
-  mountedRef: RefObject<boolean>
+  mountedRef: RefObject<boolean>,
+  accountId: string
 ) {
   const ensureFreshInbox = useCallback(async () => {
-    const meta = await getInboxSyncMeta();
-    const count = await getEmailCount();
+    const meta = await getInboxSyncMeta(accountId);
+    const count = await getEmailCount(accountId);
     if (count === 0) {
       await syncInbox();
       return;
@@ -261,21 +266,21 @@ function useInboxQueries(
     if (isInboxStale(meta.lastSyncedAt)) {
       await refreshInbox();
     }
-  }, [refreshInbox, syncInbox]);
+  }, [refreshInbox, syncInbox, accountId]);
 
   const ensureInboxCount = useCallback(
     async (target: number, opts?: { metadataOnly?: boolean }) => {
-      const current = await getEmailCount();
+      const current = await getEmailCount(accountId);
       if (current >= target) {
-        const sorted = await getInboxEmailsSorted();
+        const sorted = await getInboxEmailsSorted(accountId);
         return sorted.slice(0, target);
       }
       await runSync(target, opts?.metadataOnly ?? false);
-      const sorted = await getInboxEmailsSorted();
+      const sorted = await getInboxEmailsSorted(accountId);
       if (mountedRef.current) await refresh();
       return sorted.slice(0, target);
     },
-    [refresh, runSync, mountedRef]
+    [refresh, runSync, mountedRef, accountId]
   );
 
   const getInboxSlice = useCallback((limit: number) => emails.slice(0, limit), [emails]);
@@ -283,16 +288,17 @@ function useInboxQueries(
   return { ensureFreshInbox, ensureInboxCount, getInboxSlice };
 }
 
-function useMailboxSync(): MailboxStoreContextValue {
-  const state = useMailboxState();
-  const ops = useSyncOperations(state);
+function useMailboxSync(accountId: string): MailboxStoreContextValue {
+  const state = useMailboxState(accountId);
+  const ops = useSyncOperations(state, accountId);
   const queries = useInboxQueries(
     state.emails,
     state.refresh,
     ops.runSync,
     ops.syncInbox,
     ops.refreshInbox,
-    state.mountedRef
+    state.mountedRef,
+    accountId
   );
 
   const isStale = useMemo(() => isInboxStale(state.lastSyncedAt), [state.lastSyncedAt]);
@@ -300,7 +306,10 @@ function useMailboxSync(): MailboxStoreContextValue {
   useEffect(() => {
     state.mountedRef.current = true;
     void (async () => {
-      const [count, meta] = await Promise.all([getEmailCount(), getInboxSyncMeta()]);
+      const [count, meta] = await Promise.all([
+        getEmailCount(accountId),
+        getInboxSyncMeta(accountId),
+      ]);
       await state.refresh();
       try {
         if (count === 0) {
@@ -315,10 +324,11 @@ function useMailboxSync(): MailboxStoreContextValue {
     return () => {
       state.mountedRef.current = false;
     };
-  }, [state.refresh, ops.runRefreshHead, ops.runSync, state.mountedRef]);
+  }, [state.refresh, ops.runRefreshHead, ops.runSync, state.mountedRef, accountId]);
 
   return useMemo(
     () => ({
+      accountId,
       emails: state.emails,
       total: state.total,
       indexed: state.indexed,
@@ -339,11 +349,17 @@ function useMailboxSync(): MailboxStoreContextValue {
       ensureInboxCount: queries.ensureInboxCount,
       getInboxSlice: queries.getInboxSlice,
     }),
-    [state, ops, queries, isStale]
+    [state, ops, queries, isStale, accountId]
   );
 }
 
-export function MailboxStoreProvider({ children }: { children: ReactNode }) {
-  const value = useMailboxSync();
+export function MailboxStoreProvider({
+  children,
+  accountId,
+}: {
+  children: ReactNode;
+  accountId: string;
+}) {
+  const value = useMailboxSync(accountId);
   return <MailboxStoreContext.Provider value={value}>{children}</MailboxStoreContext.Provider>;
 }

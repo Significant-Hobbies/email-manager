@@ -8,7 +8,7 @@
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 (CSS custom properties for light/dark) |
 | Server DB | Cloudflare D1 `email-manager-auth` (Drizzle ORM) — auth tables only |
-| Client DB | IndexedDB (`idb` v8) — `email-search` v2, stores `emails` + `meta` |
+| Client DB | IndexedDB (`idb` v8) — `email-search-account:<encoded user ID>` v2, stores `emails` + `meta` |
 | Auth | better-auth (Google OAuth, `gmail.readonly`, offline access) |
 | ML | `@huggingface/transformers` v4 (ONNX runtime, WASM, in-browser) |
 | Analytics | PostHog (`posthog-js`), web-vitals RUM, Microsoft Clarity with the SPA root explicitly masked |
@@ -66,7 +66,7 @@ User action → SPA → /api/emails → Hono Worker → Gmail REST API
 ```
 
 - Gmail fetched on demand via worker with 429 exponential backoff.
-- Cached in IndexedDB `email-search` v2 (`emails` store, `by-date` index).
+- Cached in IndexedDB `email-search-account:<encoded user ID>` v2 (`emails` store, `by-date` index).
 - `StoredEmail` = `Email` + `embedding: number[] | null`.
 
 ### Embedding flow (in-browser)
@@ -107,7 +107,7 @@ User click → POST /api/emails/:id/unsubscribe → RFC 8058 one-click POST
 
 ## IndexedDB schema (`src/lib/db.ts`)
 
-- Database: `email-search` v2.
+- Database: `email-search-account:<encoded user ID>` v2.
 - Store `emails`: keyed by `id`, index `by-date`.
 - Store `meta` (added in v2): holds the `inbox-sync` cursor (`nextPageToken`,
   `exhausted`, `lastSyncedAt`) so paged sync can resume where it left off.
