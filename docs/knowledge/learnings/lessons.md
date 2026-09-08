@@ -26,7 +26,9 @@ const { pipeline } = await import(/* webpackIgnore: true */ /* @vite-ignore */ m
 
 ### 2. First inference is slow; model is downloaded from HuggingFace CDN
 
-`Xenova/all-MiniLM-L6-v2` is ~23 MB (fp32 ONNX weights + tokenizer). The browser
+The September 2026 browser check measured `Xenova/all-MiniLM-L6-v2` fp32 ONNX
+weights at 90,387,606 bytes, plus tokenizer and WASM runtime downloads. See
+[browser model evidence](browser-model-2026-09-08.md) for current CDN/CSP requirements. The browser
 downloads it from `cdn-lfs.huggingface.co` on first use. The CSP `connect-src` must
 whitelist multiple HuggingFace CDN hosts (`cdn-lfs.huggingface.co`, `cdn-lfs-us-1.huggingface.co`,
 `*.huggingface.co`) — the exact host varies by shard. A too-narrow CSP silently blocks

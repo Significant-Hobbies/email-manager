@@ -5,6 +5,8 @@ things that actually burned time or required non-obvious fixes here.
 
 ## Files
 
+- [`browser-model-2026-09-08.md`](browser-model-2026-09-08.md) — actual browser model loading, CSP failure/repair, and bounded ranking comparison.
+
 - [`lessons.md`](lessons.md) — 20 numbered lessons organized by topic:
   Transformers.js/ONNX (1–4), IndexedDB (5–8), Cloudflare Workers (9–13,
   Build Pipeline (14–16, historical), OAuth/Auth (17–20). Lessons 14–16 are

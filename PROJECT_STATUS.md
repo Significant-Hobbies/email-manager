@@ -51,6 +51,15 @@ Last updated: 2026-09-08
 
 ## Timeline
 
+- **2026-09-08 (source repair, publication pending):** A real browser model check
+  reproduced CSP blocks on the current model CDN redirect and ONNX runtime.
+  The corrected policy passes actual embedding inference with synthetic text.
+  `pnpm verify:browser-model` now checks this independently of mocked unit tests.
+  The existing model also missed three of ten bounded synthetic search queries;
+  candidate-model evidence and its limits are recorded in the
+  [browser model report](docs/knowledge/learnings/browser-model-2026-09-08.md).
+  No model replacement or real-mailbox qualification is claimed.
+
 - **2026-09-08:** Published the account-scoped mailbox-cache repair after the
   isolated browser mailbox check and production build passed. The canonical
   Google sign-in flow reaches the account form; real mailbox/account-switch

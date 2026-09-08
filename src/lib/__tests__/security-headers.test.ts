@@ -5,6 +5,22 @@ import { describe, expect, it } from 'vitest';
 import { SECURITY_HEADERS } from '../security-headers';
 
 describe('Content Security Policy', () => {
+  it('allows model redirects and the pinned browser runtime without allowing all CDN scripts', () => {
+    const policy = SECURITY_HEADERS['Content-Security-Policy'];
+    const directives = policy.split('; ');
+    const connect = directives.find((value) => value.startsWith('connect-src '));
+    const script = directives.find((value) => value.startsWith('script-src '));
+    expect(connect).toContain('https://us.aws.cdn.hf.co');
+    expect(connect).toContain(
+      'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/'
+    );
+    expect(script).toContain(
+      'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/'
+    );
+    expect(script?.split(' ')).not.toContain('https://cdn.jsdelivr.net');
+    expect(script?.split(' ')).toContain('blob:');
+  });
+
   it('allows the shared first-party footer script and catalog', () => {
     const policy = SECURITY_HEADERS['Content-Security-Policy'];
     const directives = policy.split('; ');

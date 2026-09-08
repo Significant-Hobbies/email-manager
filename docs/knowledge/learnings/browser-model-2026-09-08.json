@@ -1,0 +1,592 @@
+{
+  "source": "210e6ad02d9ea4e1e6ee8daae9e1addc103b6de6 plus the uncommitted security-header repair on 2026-09-08",
+  "model": "Xenova/all-MiniLM-L6-v2",
+  "dtype": "fp32",
+  "elapsedMs": 9740,
+  "result": {
+    "times": [
+      {
+        "id": "flight",
+        "ms": 5605.800000011921,
+        "dimensions": 384,
+        "norm": 0.9999999749115662,
+        "finite": true
+      },
+      {
+        "id": "hotel",
+        "ms": 17.30000001192093,
+        "dimensions": 384,
+        "norm": 1.000000045172699,
+        "finite": true
+      },
+      {
+        "id": "refund",
+        "ms": 15.099999994039536,
+        "dimensions": 384,
+        "norm": 1.0000001204551212,
+        "finite": true
+      },
+      {
+        "id": "meeting",
+        "ms": 15.099999994039536,
+        "dimensions": 384,
+        "norm": 0.9999998898800776,
+        "finite": true
+      },
+      {
+        "id": "invoice",
+        "ms": 14.199999988079071,
+        "dimensions": 384,
+        "norm": 1.0000003516174334,
+        "finite": true
+      },
+      {
+        "id": "lease",
+        "ms": 13.799999982118607,
+        "dimensions": 384,
+        "norm": 0.9999999925237172,
+        "finite": true
+      },
+      {
+        "id": "newsletter",
+        "ms": 15.699999988079071,
+        "dimensions": 384,
+        "norm": 0.9999997520259929,
+        "finite": true
+      },
+      {
+        "id": "concert",
+        "ms": 14.699999988079071,
+        "dimensions": 384,
+        "norm": 1.0000002005561892,
+        "finite": true
+      }
+    ],
+    "rankings": [
+      {
+        "query": "boarding pass for my trip",
+        "expected": "flight",
+        "ms": 3.800000011920929,
+        "top": [
+          {
+            "id": "concert",
+            "score": 0.21106444563737478
+          },
+          {
+            "id": "flight",
+            "score": 0.19891630445409458
+          },
+          {
+            "id": "hotel",
+            "score": 0.1888041127763192
+          }
+        ],
+        "pass": false
+      },
+      {
+        "query": "where am I staying overnight in Bengaluru",
+        "expected": "hotel",
+        "ms": 5.0999999940395355,
+        "top": [
+          {
+            "id": "hotel",
+            "score": 0.7419906729803892
+          },
+          {
+            "id": "flight",
+            "score": 0.24792557737780216
+          },
+          {
+            "id": "concert",
+            "score": 0.2089486537117495
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "money back for the returned computer",
+        "expected": "refund",
+        "ms": 3.9000000059604645,
+        "top": [
+          {
+            "id": "refund",
+            "score": 0.5996787264694527
+          },
+          {
+            "id": "invoice",
+            "score": 0.16085979632108593
+          },
+          {
+            "id": "newsletter",
+            "score": 0.07865478012019991
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "time to discuss the new interface",
+        "expected": "meeting",
+        "ms": 3.899999976158142,
+        "top": [
+          {
+            "id": "meeting",
+            "score": 0.5884298743933254
+          },
+          {
+            "id": "invoice",
+            "score": 0.1427342708860302
+          },
+          {
+            "id": "concert",
+            "score": 0.1376852541407066
+          }
+        ],
+        "pass": true
+      }
+    ],
+    "repeatCosine": 0.9999999498231331,
+    "additional": [
+      {
+        "query": "flight booking or boarding pass to Delhi",
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.6684681786466194
+          },
+          {
+            "id": "hotel",
+            "score": 0.2934066684822567
+          },
+          {
+            "id": "concert",
+            "score": 0.280054714851173
+          }
+        ]
+      },
+      {
+        "query": "boarding pass",
+        "top": [
+          {
+            "id": "concert",
+            "score": 0.20599107954588944
+          },
+          {
+            "id": "flight",
+            "score": 0.18506578296924447
+          },
+          {
+            "id": "meeting",
+            "score": 0.1799053412800673
+          }
+        ]
+      },
+      {
+        "query": "airline reservation",
+        "top": [
+          {
+            "id": "concert",
+            "score": 0.30077691234356707
+          },
+          {
+            "id": "flight",
+            "score": 0.26142973409483317
+          },
+          {
+            "id": "hotel",
+            "score": 0.25292980268787757
+          }
+        ]
+      },
+      {
+        "query": "my flight departure time",
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.3847432129826884
+          },
+          {
+            "id": "concert",
+            "score": 0.25695424694346963
+          },
+          {
+            "id": "refund",
+            "score": 0.2174874613867084
+          }
+        ]
+      },
+      {
+        "query": "concert tickets",
+        "top": [
+          {
+            "id": "concert",
+            "score": 0.5586212608077504
+          },
+          {
+            "id": "newsletter",
+            "score": 0.20337749485813914
+          },
+          {
+            "id": "hotel",
+            "score": 0.1661404519211395
+          }
+        ]
+      },
+      {
+        "query": "hotel reservation",
+        "top": [
+          {
+            "id": "hotel",
+            "score": 0.43230155759109024
+          },
+          {
+            "id": "concert",
+            "score": 0.2870231880885361
+          },
+          {
+            "id": "lease",
+            "score": 0.18691698619423283
+          }
+        ]
+      }
+    ],
+    "bgeLoadMs": 3096.0999999940395,
+    "bgeRankings": [
+      {
+        "query": "boarding pass for my trip",
+        "expected": "flight",
+        "ms": 14.700000017881393,
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.6600670687875909
+          },
+          {
+            "id": "concert",
+            "score": 0.5089303189442822
+          },
+          {
+            "id": "hotel",
+            "score": 0.4638524862593538
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "where am I staying overnight in Bengaluru",
+        "expected": "hotel",
+        "ms": 17.19999998807907,
+        "top": [
+          {
+            "id": "hotel",
+            "score": 0.7178739705586081
+          },
+          {
+            "id": "flight",
+            "score": 0.4789656007458041
+          },
+          {
+            "id": "concert",
+            "score": 0.47102392392387143
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "money back for the returned computer",
+        "expected": "refund",
+        "ms": 15.5,
+        "top": [
+          {
+            "id": "refund",
+            "score": 0.7182947277166337
+          },
+          {
+            "id": "invoice",
+            "score": 0.47174440392502714
+          },
+          {
+            "id": "newsletter",
+            "score": 0.4194287574007581
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "time to discuss the new interface",
+        "expected": "meeting",
+        "ms": 15.400000005960464,
+        "top": [
+          {
+            "id": "meeting",
+            "score": 0.6961273688319807
+          },
+          {
+            "id": "hotel",
+            "score": 0.42235148482046475
+          },
+          {
+            "id": "invoice",
+            "score": 0.4191810634924705
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "flight booking or boarding pass to Delhi",
+        "expected": "flight",
+        "ms": 16.69999998807907,
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.817365108413482
+          },
+          {
+            "id": "concert",
+            "score": 0.4970658807639418
+          },
+          {
+            "id": "hotel",
+            "score": 0.49344671900694836
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "boarding pass",
+        "expected": "flight",
+        "ms": 12.400000005960464,
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.6198268223930486
+          },
+          {
+            "id": "meeting",
+            "score": 0.4634549240745316
+          },
+          {
+            "id": "refund",
+            "score": 0.45035965901174074
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "airline reservation",
+        "expected": "flight",
+        "ms": 12.300000011920929,
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.5648930328051658
+          },
+          {
+            "id": "hotel",
+            "score": 0.5186214638825646
+          },
+          {
+            "id": "concert",
+            "score": 0.45689229317536617
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "my flight departure time",
+        "expected": "flight",
+        "ms": 14.199999988079071,
+        "top": [
+          {
+            "id": "flight",
+            "score": 0.6570655250089467
+          },
+          {
+            "id": "refund",
+            "score": 0.4700823000762377
+          },
+          {
+            "id": "hotel",
+            "score": 0.45763515654001935
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "concert tickets",
+        "expected": "concert",
+        "ms": 12.300000011920929,
+        "top": [
+          {
+            "id": "concert",
+            "score": 0.616284346012257
+          },
+          {
+            "id": "hotel",
+            "score": 0.4451745368524907
+          },
+          {
+            "id": "flight",
+            "score": 0.4211542527216571
+          }
+        ],
+        "pass": true
+      },
+      {
+        "query": "hotel reservation",
+        "expected": "hotel",
+        "ms": 12.400000005960464,
+        "top": [
+          {
+            "id": "hotel",
+            "score": 0.6790695380236371
+          },
+          {
+            "id": "concert",
+            "score": 0.4833796655637894
+          },
+          {
+            "id": "flight",
+            "score": 0.478752707631291
+          }
+        ],
+        "pass": true
+      }
+    ],
+    "cacheNames": ["transformers-cache"]
+  },
+  "network": [
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/all-MiniLM-L6-v2/resolve/main/config.json",
+      "status": 307,
+      "length": "250"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/all-MiniLM-L6-v2/751bff37182d3f1213fa05d7196b954e230abad9/config.json",
+      "status": 200,
+      "length": "650"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json",
+      "status": 307,
+      "length": "270"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/all-MiniLM-L6-v2/751bff37182d3f1213fa05d7196b954e230abad9/tokenizer_config.json",
+      "status": 206,
+      "length": "1"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json",
+      "status": 307,
+      "length": "270"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/all-MiniLM-L6-v2/resolve/main/tokenizer.json",
+      "status": 307,
+      "length": "256"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/all-MiniLM-L6-v2/resolve/main/onnx/model.onnx",
+      "status": 302,
+      "length": "952"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/all-MiniLM-L6-v2/751bff37182d3f1213fa05d7196b954e230abad9/tokenizer_config.json",
+      "status": 200,
+      "length": "366"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/all-MiniLM-L6-v2/751bff37182d3f1213fa05d7196b954e230abad9/tokenizer.json",
+      "status": 200,
+      "length": null
+    },
+    {
+      "host": "us.aws.cdn.hf.co",
+      "path": "/xet-bridge-us/645192b75fb40b9f50b71914/b7d9d5cb1d321ba62f985cb04b9a7760d641a666be316f61f6ca4b37a0220fd9",
+      "status": 200,
+      "length": "90387606"
+    },
+    {
+      "host": "cdn.jsdelivr.net",
+      "path": "/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/ort-wasm-simd-threaded.asyncify.wasm",
+      "status": 200,
+      "length": "4732131"
+    },
+    {
+      "host": "cdn.jsdelivr.net",
+      "path": "/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/ort-wasm-simd-threaded.asyncify.mjs",
+      "status": 200,
+      "length": "17958"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/bge-small-en-v1.5/resolve/main/config.json",
+      "status": 307,
+      "length": "252"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/bge-small-en-v1.5/ea104dacec62c0de699686887e3f920caeb4f3e3/config.json",
+      "status": 200,
+      "length": "683"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/bge-small-en-v1.5/resolve/main/tokenizer_config.json",
+      "status": 307,
+      "length": "272"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/bge-small-en-v1.5/ea104dacec62c0de699686887e3f920caeb4f3e3/tokenizer_config.json",
+      "status": 206,
+      "length": "1"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/bge-small-en-v1.5/resolve/main/tokenizer.json",
+      "status": 307,
+      "length": "258"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/bge-small-en-v1.5/resolve/main/onnx/model_quantized.onnx",
+      "status": 302,
+      "length": "996"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/Xenova/bge-small-en-v1.5/resolve/main/tokenizer_config.json",
+      "status": 307,
+      "length": "272"
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/bge-small-en-v1.5/ea104dacec62c0de699686887e3f920caeb4f3e3/tokenizer.json",
+      "status": 200,
+      "length": null
+    },
+    {
+      "host": "huggingface.co",
+      "path": "/api/resolve-cache/models/Xenova/bge-small-en-v1.5/ea104dacec62c0de699686887e3f920caeb4f3e3/tokenizer_config.json",
+      "status": 200,
+      "length": "366"
+    },
+    {
+      "host": "us.aws.cdn.hf.co",
+      "path": "/xet-bridge-us/6501d9c1e4d9d2d301d76685/43197c0772cd3622c3ff70f3b42c948d4e32cc3fec11f2022a705f1b8ca80152",
+      "status": 200,
+      "length": "34014426"
+    }
+  ],
+  "scope": "Isolated Chrome with application CSP, synthetic messages, real browser WASM models. No real mailbox or broad ranking benchmark."
+}

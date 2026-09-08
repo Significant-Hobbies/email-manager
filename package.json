@@ -37,7 +37,8 @@
     "quality:cycles": "knip --cycles",
     "quality:dependencies": "node scripts/check-code-health.mjs dependencies",
     "quality": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage && pnpm run quality:unused && pnpm run quality:complexity && pnpm run quality:duplication && pnpm run quality:cycles && pnpm run quality:dependencies",
-    "verify:local-mailbox": "node scripts/verify-local-mailbox.mjs"
+    "verify:local-mailbox": "node scripts/verify-local-mailbox.mjs",
+    "verify:browser-model": "node scripts/verify-browser-model.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "4.2.0",
