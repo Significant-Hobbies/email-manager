@@ -19,13 +19,6 @@ const LANDING_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400, stale-while
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Fleet agent indexing (GEO) — before SPA asset fallback
-app.use('*', async (c, next) => {
-  const agent = handleAgentEdge(c.req.raw);
-  if (agent) return agent;
-  return next();
-});
-
 app.use('/api/*', async (c, next) => {
   await next();
   return withSecurityHeaders(c.res);
@@ -358,6 +351,12 @@ function maybeRedirectToApp(url: URL, request: Request): Response | null {
 
 async function routeRequest(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const url = new URL(request.url);
+
+  // Discovery owns public documents and its catalog, never product API routes.
+  if (!url.pathname.startsWith('/api/') || url.pathname === '/api/ai') {
+    const agent = handleAgentEdge(request);
+    if (agent) return withSecurityHeaders(agent);
+  }
 
   if (url.pathname.startsWith('/api/')) {
     return app.fetch(request, env, ctx);

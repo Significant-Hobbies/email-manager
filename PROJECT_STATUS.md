@@ -56,6 +56,11 @@ Last updated: 2026-09-08
   Google sign-in flow reaches the account form; real mailbox/account-switch
   and model-quality verification remain in issue 54. Deployment runbooks now
   use `pnpm run deploy` explicitly, avoiding pnpm's unrelated built-in deploy.
+  A live routing regression was reproduced: public discovery intercepted auth
+  session/callback and mailbox GETs, while the advertised OpenAPI route bypassed
+  the Worker handler. The source repair separates discovery from product APIs;
+  exported-entry-point regressions cover auth routing, mailbox denial and public
+  discovery. Signed-in owner qualification remains open.
 
 - **2026-09-07:** Local mailbox storage now requires explicit authenticated
   account scope, including sync/index/search/digest and hover caches. Account
