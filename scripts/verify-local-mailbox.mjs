@@ -14,6 +14,15 @@ async function exerciseMailbox(page) {
     const { semanticSearch } = await import('../src/lib/semantic-search.ts');
     const { buildWeeklyDigest } = await import('../src/lib/digest.ts');
     await ensureInboxEmails({ accountId: 'fixture-a', target: 2 });
+    const signal = { aborted: false };
+    const cancelledIndex = await indexEmailsForSearch({
+      accountId: 'fixture-a',
+      signal,
+      onProgress(message) {
+        if (message.startsWith('Indexing ')) signal.aborted = true;
+      },
+    });
+    const pendingAfterCancel = await db.getPendingIndexCount('fixture-a');
     await indexEmailsForSearch({ accountId: 'fixture-a' });
     const a = await db.getInboxEmailsSorted('fixture-a');
     const bInitially = await db.getAllEmails('fixture-b');
@@ -55,6 +64,8 @@ async function exerciseMailbox(page) {
     }
     const digest = buildWeeklyDigest(await db.getInboxEmailsSorted('fixture-a'));
     return {
+      cancelledIndex,
+      pendingAfterCancel,
       a: await db.getAllEmails('fixture-a'),
       b: await db.getAllEmails('fixture-b'),
       aMeta: await db.getInboxSyncMeta('fixture-a'),
@@ -131,6 +142,8 @@ test('isolated synthetic mailbox workflow', async () => {
     });
     await page.goto(`${origin}fixture`);
     const result = await exerciseMailbox(page);
+    assert.deepEqual(result.cancelledIndex, { indexed: 0, remaining: 1 });
+    assert.equal(result.pendingAfterCancel, 1);
     assert.equal(result.a.length, 1);
     assert.equal(result.bInitially.length, 0);
     assert.equal(result.b.length, 1);

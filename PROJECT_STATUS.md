@@ -51,6 +51,13 @@ Last updated: 2026-09-08
 
 ## Timeline
 
+- **2026-09-08:** Search indexing now counts only successfully persisted
+  embeddings. Cancelling before model loading avoids a download; cancelling
+  during inference leaves the message pending; a write already completed still
+  counts. Four regressions failed before the repair. Six focused tests and the
+  real IndexedDB mailbox verifier cover cancellation, partial completion,
+  zero-sized batches, newest-first limits and write failures.
+
 - **2026-09-08 (source repair, publication pending):** A real browser model check
   reproduced CSP blocks on the current model CDN redirect and ONNX runtime.
   The corrected policy passes actual embedding inference with synthetic text.

@@ -15,21 +15,24 @@ export async function indexEmailsForSearch(options: {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, limit);
 
-  if (toIndex.length === 0) {
-    return { indexed: 0, remaining: 0 };
+  if (toIndex.length === 0 || options.signal?.aborted) {
+    return { indexed: 0, remaining: unembedded.length };
   }
 
   options?.onProgress?.('Loading AI model…');
   await embed('warmup');
 
+  let indexed = 0;
   for (let i = 0; i < toIndex.length; i++) {
     if (options?.signal?.aborted) break;
     options?.onProgress?.(`Indexing ${i + 1} of ${toIndex.length}…`);
     const text = prepareEmailText(toIndex[i]);
     const embedding = await embed(text);
+    if (options.signal?.aborted) break;
     await storeEmail({ ...toIndex[i], embedding }, options.accountId);
+    indexed += 1;
   }
 
-  const stillPending = Math.max(0, unembedded.length - toIndex.length);
-  return { indexed: toIndex.length, remaining: stillPending };
+  const stillPending = Math.max(0, unembedded.length - indexed);
+  return { indexed, remaining: stillPending };
 }
