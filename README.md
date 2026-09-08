@@ -83,7 +83,7 @@ Google OAuth must allow the local and production callback URLs:
 - `pnpm test` — Vitest unit suite
 - `pnpm test:e2e` — Playwright e2e suite
 - `pnpm check:docs` — documentation validation (`scripts/check-docs.mjs`)
-- `pnpm deploy` — build and deploy to Cloudflare Workers
+- `pnpm run deploy` — build and deploy to Cloudflare Workers
 
 ## Architecture
 

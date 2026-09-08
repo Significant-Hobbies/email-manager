@@ -20,7 +20,7 @@ an auto-deploy trigger.
 ### Option 1: CLI
 
 ```bash
-pnpm deploy    # pnpm build && wrangler deploy
+pnpm run deploy    # pnpm build && wrangler deploy
 ```
 
 ### Option 2: GitHub Actions (workflow_dispatch)

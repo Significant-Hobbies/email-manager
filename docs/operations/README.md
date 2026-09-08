@@ -18,7 +18,7 @@ human-readable companion.
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm deploy` | Build + `wrangler deploy` to Cloudflare Workers |
+| `pnpm run deploy` | Build + `wrangler deploy` to Cloudflare Workers |
 | `pnpm build` | Vite build + Astro landing overlay → `dist/` |
 | `pnpm typecheck` | TS check (app + worker) |
 | `pnpm test` | Unit tests (Vitest) |

@@ -1,5 +1,5 @@
 # email-manager — PROJECT STATUS
-Last updated: 2026-09-07
+Last updated: 2026-09-08
 
 ## Why / What
 
@@ -43,13 +43,19 @@ Last updated: 2026-09-07
 | `pnpm lint` | Biome (`biome check .`) |
 | `pnpm test:e2e` | Playwright (desktop + mobile) |
 | `pnpm digest:verify` | Golden-file digest fixture check |
-| `pnpm deploy` | Build + `wrangler deploy` |
+| `pnpm run deploy` | Build + `wrangler deploy` |
 
 **OAuth callbacks (must register in Google Cloud Console):**
 - `http://localhost:8787/api/auth/callback/google`
 - `https://mail.significanthobbies.com/api/auth/callback/google`
 
 ## Timeline
+
+- **2026-09-08:** Published the account-scoped mailbox-cache repair after the
+  isolated browser mailbox check and production build passed. The canonical
+  Google sign-in flow reaches the account form; real mailbox/account-switch
+  and model-quality verification remain in issue 54. Deployment runbooks now
+  use `pnpm run deploy` explicitly, avoiding pnpm's unrelated built-in deploy.
 
 - **2026-09-07:** Local mailbox storage now requires explicit authenticated
   account scope, including sync/index/search/digest and hover caches. Account
@@ -82,7 +88,7 @@ Last updated: 2026-09-07
 - **2026-06-20** — De-OpenNext migration: Next.js+OpenNext → Vite SPA + Hono worker on Cloudflare Workers; Astro landing overlaid to `dist/index.html`; D1 only server DB (Turso residue removed).
 - **2026-06-20** — Shipped PRD batch (2026-06-12): weekly digest, triage action queue, Gmail filter recipe studio.
 - **2026-06-12** — PRD batch defined: weekly digest, triage queues, filter recipe studio.
-- **Ongoing** — CI (lint + typecheck + unit tests + build + docs validation) runs on push/PR to `main`; deploys are manual (`pnpm deploy`, or `deploy.yml` via workflow_dispatch). The only scheduled workflow is the privacy-safe Foundry evidence snapshot.
+- **Ongoing** — CI (lint + typecheck + unit tests + build + docs validation) runs on push/PR to `main`; deploys are manual (`pnpm run deploy`, or `deploy.yml` via workflow_dispatch). The only scheduled workflow is the privacy-safe Foundry evidence snapshot.
 
 ## Products
 

@@ -15,7 +15,7 @@ pushing to `main` is not an auto-deploy trigger.
 ```bash
 git checkout main
 git pull
-pnpm deploy    # pnpm build && wrangler deploy
+pnpm run deploy    # pnpm build && wrangler deploy
 ```
 
 ### Post-deploy smoke check
