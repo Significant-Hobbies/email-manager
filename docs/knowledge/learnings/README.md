@@ -5,6 +5,8 @@ things that actually burned time or required non-obvious fixes here.
 
 ## Files
 
+- [`embedding-cache-2026-09-09.md`](embedding-cache-2026-09-09.md) — pinned model identity, safe pending reindexing, and fresh synthetic ranking evidence.
+
 - [`browser-model-2026-09-08.md`](browser-model-2026-09-08.md) — actual browser model loading, CSP failure/repair, and bounded ranking comparison.
 
 - [`lessons.md`](lessons.md) — 20 numbered lessons organized by topic:

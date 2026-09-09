@@ -1,8 +1,10 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { hasCurrentEmbedding } from './embedding-contract';
 import type { Email } from './gmail';
 
 export interface StoredEmail extends Email {
   embedding: number[] | null;
+  embeddingModel?: string;
 }
 
 export interface InboxSyncMeta {
@@ -86,7 +88,7 @@ export async function getInboxEmailsSorted(accountId: string): Promise<StoredEma
 export async function getEmailsWithoutEmbedding(accountId: string): Promise<StoredEmail[]> {
   const db = await getDB(accountId);
   const all = await db.getAll('emails');
-  return all.filter((e) => !e.embedding);
+  return all.filter((e) => !hasCurrentEmbedding(e));
 }
 
 export async function getEmailCount(accountId: string): Promise<number> {
@@ -97,13 +99,13 @@ export async function getEmailCount(accountId: string): Promise<number> {
 export async function getIndexedCount(accountId: string): Promise<number> {
   const db = await getDB(accountId);
   const all = await db.getAll('emails');
-  return all.filter((e) => e.embedding).length;
+  return all.filter(hasCurrentEmbedding).length;
 }
 
 export async function getPendingIndexCount(accountId: string): Promise<number> {
   const db = await getDB(accountId);
   const all = await db.getAll('emails');
-  return all.filter((e) => !e.embedding).length;
+  return all.filter((e) => !hasCurrentEmbedding(e)).length;
 }
 
 export async function getInboxSyncMeta(accountId: string): Promise<InboxSyncMeta> {

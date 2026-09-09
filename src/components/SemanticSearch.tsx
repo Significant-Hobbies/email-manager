@@ -151,7 +151,7 @@ function SearchResults({
               {email.from.replace(STRIP_ANGLE_RE, '').trim()}
             </span>
             <div className="flex shrink-0 items-center gap-2">
-              <Badge>{(score * 100).toFixed(0)}% match</Badge>
+              <Badge>Similarity {score.toFixed(2)}</Badge>
               <span className="text-xs tabular-nums text-[var(--text-muted)]">
                 {new Date(email.date).toLocaleDateString()}
               </span>

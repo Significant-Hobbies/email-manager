@@ -1,0 +1,819 @@
+{
+  "observedAt": "2026-09-09T07:04:32.384Z",
+  "baselineMs": 6546.5,
+  "baseline": [
+    {
+      "query": "boarding pass for my trip",
+      "expected": "flight",
+      "top": [
+        {
+          "id": "promo",
+          "score": 0.47746684157866176
+        },
+        {
+          "id": "flight",
+          "score": 0.3688632052231001
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.2673589533989132
+        }
+      ],
+      "pass": false
+    },
+    {
+      "query": "boarding pass",
+      "expected": "flight",
+      "top": [
+        {
+          "id": "promo",
+          "score": 0.4511352814413835
+        },
+        {
+          "id": "flight",
+          "score": 0.3674721424814805
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.22599333915651565
+        }
+      ],
+      "pass": false
+    },
+    {
+      "query": "airline reservation",
+      "expected": "flight",
+      "top": [
+        {
+          "id": "flight",
+          "score": 0.46932842085176424
+        },
+        {
+          "id": "promo",
+          "score": 0.4505168179873071
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.407390402701624
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "where am I staying overnight in Bengaluru",
+      "expected": "hotel",
+      "top": [
+        {
+          "id": "hotel",
+          "score": 0.7665958682581082
+        },
+        {
+          "id": "flight",
+          "score": 0.5761357860032108
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.28330090568067134
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "money back for the returned computer",
+      "expected": "refund",
+      "top": [
+        {
+          "id": "refund",
+          "score": 0.7318709206854418
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.3527178874272365
+        },
+        {
+          "id": "password",
+          "score": 0.3178256525582769
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "time to discuss the new interface",
+      "expected": "meeting",
+      "top": [
+        {
+          "id": "meeting",
+          "score": 0.5925375983092196
+        },
+        {
+          "id": "newsletter",
+          "score": 0.3395381248313423
+        },
+        {
+          "id": "promo",
+          "score": 0.171168514668171
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "unpaid consulting bill",
+      "expected": "invoice",
+      "top": [
+        {
+          "id": "invoice",
+          "score": 0.5788693583309656
+        },
+        {
+          "id": "payment",
+          "score": 0.4347720509785036
+        },
+        {
+          "id": "trial",
+          "score": 0.23200759032537613
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "renew my apartment rental",
+      "expected": "lease",
+      "top": [
+        {
+          "id": "lease",
+          "score": 0.6684644775970201
+        },
+        {
+          "id": "trial",
+          "score": 0.20592555506086868
+        },
+        {
+          "id": "invoice",
+          "score": 0.1598970343015377
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "weekly technology news",
+      "expected": "newsletter",
+      "top": [
+        {
+          "id": "newsletter",
+          "score": 0.6731236941537918
+        },
+        {
+          "id": "meeting",
+          "score": 0.23441107669715305
+        },
+        {
+          "id": "promo",
+          "score": 0.20201598219376493
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "tickets for Saturday live music",
+      "expected": "concert",
+      "top": [
+        {
+          "id": "concert",
+          "score": 0.7055766565638097
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.44738149429905366
+        },
+        {
+          "id": "promo",
+          "score": 0.3979514550518669
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "cancelled Chennai flight",
+      "expected": "flight-cancel",
+      "top": [
+        {
+          "id": "flight-cancel",
+          "score": 0.8232915750661209
+        },
+        {
+          "id": "flight",
+          "score": 0.460489390627002
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.3978955074400535
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "proof that invoice 1042 is paid",
+      "expected": "payment",
+      "top": [
+        {
+          "id": "payment",
+          "score": 0.6885283124449777
+        },
+        {
+          "id": "invoice",
+          "score": 0.634851601393574
+        },
+        {
+          "id": "refund",
+          "score": 0.23921330583772873
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "recover my account password",
+      "expected": "password",
+      "top": [
+        {
+          "id": "password",
+          "score": 0.6789852650468333
+        },
+        {
+          "id": "refund",
+          "score": 0.23730171218771826
+        },
+        {
+          "id": "trial",
+          "score": 0.16914997115455785
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "when do my headphones arrive",
+      "expected": "parcel",
+      "top": [
+        {
+          "id": "parcel",
+          "score": 0.6918111996293724
+        },
+        {
+          "id": "flight",
+          "score": 0.33223645488692655
+        },
+        {
+          "id": "concert",
+          "score": 0.30429681589559676
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "dental cleaning appointment time",
+      "expected": "doctor",
+      "top": [
+        {
+          "id": "doctor",
+          "score": 0.852205554550779
+        },
+        {
+          "id": "hotel",
+          "score": 0.1990081296121819
+        },
+        {
+          "id": "invoice",
+          "score": 0.19720169855345993
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "refund for cancelled concert",
+      "expected": "concert-refund",
+      "top": [
+        {
+          "id": "concert-refund",
+          "score": 0.7869579690530232
+        },
+        {
+          "id": "refund",
+          "score": 0.39992314903111303
+        },
+        {
+          "id": "concert",
+          "score": 0.3696562288298405
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "promotional airfare offers",
+      "expected": "promo",
+      "top": [
+        {
+          "id": "promo",
+          "score": 0.5998607748119468
+        },
+        {
+          "id": "concert",
+          "score": 0.35387033782054733
+        },
+        {
+          "id": "parcel",
+          "score": 0.2698918638301125
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "avoid being charged after the free trial",
+      "expected": "trial",
+      "top": [
+        {
+          "id": "trial",
+          "score": 0.43930380574959416
+        },
+        {
+          "id": "invoice",
+          "score": 0.21142068994958374
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.18157337634871734
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "bge": [
+    {
+      "query": "boarding pass for my trip",
+      "expected": "flight",
+      "top": [
+        {
+          "id": "flight",
+          "score": 0.6839840972587726
+        },
+        {
+          "id": "promo",
+          "score": 0.668439746409053
+        },
+        {
+          "id": "concert",
+          "score": 0.5522790935617043
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "boarding pass",
+      "expected": "flight",
+      "top": [
+        {
+          "id": "promo",
+          "score": 0.6549473215860868
+        },
+        {
+          "id": "flight",
+          "score": 0.6309408715473952
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.5055761174813285
+        }
+      ],
+      "pass": false
+    },
+    {
+      "query": "airline reservation",
+      "expected": "flight",
+      "top": [
+        {
+          "id": "flight",
+          "score": 0.6662406137716631
+        },
+        {
+          "id": "promo",
+          "score": 0.6469444164612594
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.5982820911028753
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "where am I staying overnight in Bengaluru",
+      "expected": "hotel",
+      "top": [
+        {
+          "id": "hotel",
+          "score": 0.7619642216468828
+        },
+        {
+          "id": "flight",
+          "score": 0.6578166074576003
+        },
+        {
+          "id": "doctor",
+          "score": 0.41995713364288406
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "money back for the returned computer",
+      "expected": "refund",
+      "top": [
+        {
+          "id": "refund",
+          "score": 0.7775150081295004
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.5658881779035154
+        },
+        {
+          "id": "password",
+          "score": 0.5632554577090506
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "time to discuss the new interface",
+      "expected": "meeting",
+      "top": [
+        {
+          "id": "meeting",
+          "score": 0.7239613957151835
+        },
+        {
+          "id": "newsletter",
+          "score": 0.5453417442231512
+        },
+        {
+          "id": "doctor",
+          "score": 0.4453038412461844
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "unpaid consulting bill",
+      "expected": "invoice",
+      "top": [
+        {
+          "id": "invoice",
+          "score": 0.6130808095481332
+        },
+        {
+          "id": "payment",
+          "score": 0.5052501184162114
+        },
+        {
+          "id": "trial",
+          "score": 0.4065647151713998
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "renew my apartment rental",
+      "expected": "lease",
+      "top": [
+        {
+          "id": "lease",
+          "score": 0.7981413329625532
+        },
+        {
+          "id": "trial",
+          "score": 0.48796304963494275
+        },
+        {
+          "id": "password",
+          "score": 0.4719566473673913
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "weekly technology news",
+      "expected": "newsletter",
+      "top": [
+        {
+          "id": "newsletter",
+          "score": 0.7839151164635204
+        },
+        {
+          "id": "promo",
+          "score": 0.47298992435619347
+        },
+        {
+          "id": "parcel",
+          "score": 0.43035963237741737
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "tickets for Saturday live music",
+      "expected": "concert",
+      "top": [
+        {
+          "id": "concert",
+          "score": 0.7707624341512145
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.5593579825805229
+        },
+        {
+          "id": "hotel",
+          "score": 0.5153517572605413
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "cancelled Chennai flight",
+      "expected": "flight-cancel",
+      "top": [
+        {
+          "id": "flight-cancel",
+          "score": 0.8601887682823245
+        },
+        {
+          "id": "concert-refund",
+          "score": 0.5920502016159473
+        },
+        {
+          "id": "flight",
+          "score": 0.5762778060089031
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "proof that invoice 1042 is paid",
+      "expected": "payment",
+      "top": [
+        {
+          "id": "payment",
+          "score": 0.7896851776026897
+        },
+        {
+          "id": "invoice",
+          "score": 0.7382061535057683
+        },
+        {
+          "id": "refund",
+          "score": 0.5008533633595547
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "recover my account password",
+      "expected": "password",
+      "top": [
+        {
+          "id": "password",
+          "score": 0.8439745755170214
+        },
+        {
+          "id": "refund",
+          "score": 0.5163860196085868
+        },
+        {
+          "id": "flight",
+          "score": 0.4640165655172516
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "when do my headphones arrive",
+      "expected": "parcel",
+      "top": [
+        {
+          "id": "parcel",
+          "score": 0.8041484496777359
+        },
+        {
+          "id": "invoice",
+          "score": 0.5228045418457887
+        },
+        {
+          "id": "flight",
+          "score": 0.5191030343202917
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "dental cleaning appointment time",
+      "expected": "doctor",
+      "top": [
+        {
+          "id": "doctor",
+          "score": 0.9073528344076394
+        },
+        {
+          "id": "meeting",
+          "score": 0.5142909994071081
+        },
+        {
+          "id": "hotel",
+          "score": 0.5018422927594953
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "refund for cancelled concert",
+      "expected": "concert-refund",
+      "top": [
+        {
+          "id": "concert-refund",
+          "score": 0.8346924790373926
+        },
+        {
+          "id": "flight-cancel",
+          "score": 0.5792542526694883
+        },
+        {
+          "id": "refund",
+          "score": 0.57737241244185
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "promotional airfare offers",
+      "expected": "promo",
+      "top": [
+        {
+          "id": "promo",
+          "score": 0.7101795734937368
+        },
+        {
+          "id": "flight",
+          "score": 0.5048337416078557
+        },
+        {
+          "id": "concert",
+          "score": 0.5019018031832853
+        }
+      ],
+      "pass": true
+    },
+    {
+      "query": "avoid being charged after the free trial",
+      "expected": "trial",
+      "top": [
+        {
+          "id": "trial",
+          "score": 0.7097699574276529
+        },
+        {
+          "id": "invoice",
+          "score": 0.519609451057324
+        },
+        {
+          "id": "payment",
+          "score": 0.49750021276721673
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "staleCache": {
+    "count": 1,
+    "top": "foreign-model",
+    "score": 1.0000000828459408
+  },
+  "scope": "16 synthetic messages,18 queries; fresh disposable browser; real model inference; no mailbox or provider credentials",
+  "corpus": [
+    [
+      "flight",
+      "Your flight to Bengaluru",
+      "Airline",
+      "Your reservation is confirmed. Departure Friday at 09:00. Booking code ABC123. Download your boarding pass before departure."
+    ],
+    [
+      "hotel",
+      "Hotel booking confirmed",
+      "Hotel",
+      "Your room in Bengaluru is reserved for Friday and Saturday nights. Check in after 14:00."
+    ],
+    [
+      "refund",
+      "Computer return completed",
+      "Shop",
+      "Your laptop return was received. A refund of 800 will reach your original payment method."
+    ],
+    [
+      "meeting",
+      "Design review invitation",
+      "Team",
+      "Discuss the new interface at our product design meeting on Tuesday at 10:00."
+    ],
+    [
+      "invoice",
+      "Invoice 1042 due",
+      "Vendor",
+      "Please pay the outstanding consulting invoice by the end of this month."
+    ],
+    [
+      "lease",
+      "Apartment renewal notice",
+      "Property",
+      "Your rental agreement expires next month. Reply to renew your apartment lease."
+    ],
+    [
+      "newsletter",
+      "Weekly technology roundup",
+      "Weekly",
+      "News about new processors and software releases. Unsubscribe using the footer."
+    ],
+    [
+      "concert",
+      "Concert tickets attached",
+      "Venue",
+      "Your tickets for Saturday live music are confirmed. Show the QR code at the entrance."
+    ],
+    [
+      "flight-cancel",
+      "Cancelled trip to Chennai",
+      "Airline",
+      "Your Tuesday flight to Chennai has been cancelled. This booking cannot be used to travel."
+    ],
+    [
+      "payment",
+      "Invoice 1042 paid receipt",
+      "Vendor",
+      "Payment received. No balance is outstanding on invoice 1042."
+    ],
+    [
+      "password",
+      "Reset your account password",
+      "Security",
+      "Use the password reset link to recover your account."
+    ],
+    [
+      "parcel",
+      "Your parcel is on its way",
+      "Courier",
+      "Track your shipped headphones. Delivery is expected tomorrow."
+    ],
+    [
+      "doctor",
+      "Dental appointment reminder",
+      "Clinic",
+      "Your dental cleaning appointment is Wednesday at 15:30."
+    ],
+    [
+      "concert-refund",
+      "Show cancelled refund",
+      "Venue",
+      "The Sunday concert was cancelled. Your ticket refund has been issued."
+    ],
+    [
+      "promo",
+      "Cheap flights this week",
+      "Travel Deals",
+      "Promotional offers on airfare and hotel packages. No reservation or boarding pass is included."
+    ],
+    [
+      "trial",
+      "Trial ends tomorrow",
+      "Software",
+      "Your free trial expires tomorrow and your paid subscription begins unless you cancel."
+    ]
+  ],
+  "sourceBefore": "451b699fc6010812ae168b6e776d45f16544b2f9",
+  "models": {
+    "baseline": "Xenova/all-MiniLM-L6-v2 fp32 mean normalized; current application before patch",
+    "candidate": "Xenova/bge-small-en-v1.5@ea104dacec62c0de699686887e3f920caeb4f3e3 q8 mean normalized with retrieval query prefix"
+  },
+  "coldCacheAfterRepair": {
+    "milliseconds": 6116.100000023842,
+    "dimensions": 384,
+    "finite": true,
+    "norm": 0.9999997352863993,
+    "cspViolations": [],
+    "command": "pnpm verify:browser-model"
+  },
+  "cacheRepairProof": {
+    "command": "pnpm verify:local-mailbox",
+    "realIndexedDB": true,
+    "modelInference": "deterministic fixture",
+    "invalidRecords": 5,
+    "searchHitsBeforeReindex": 0,
+    "pendingAfterPartialReindex": 3,
+    "indexedAfterRetryAndReload": 5,
+    "mailBodiesAndOtherAccountPreserved": true
+  }
+}

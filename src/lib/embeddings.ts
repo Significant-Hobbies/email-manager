@@ -1,3 +1,5 @@
+import { EMBEDDING_MODEL, EMBEDDING_REVISION } from './embedding-contract';
+
 let pipelineInstance: any = null;
 
 async function getEmbedder() {
@@ -6,8 +8,9 @@ async function getEmbedder() {
   }
   if (!pipelineInstance) {
     const { pipeline } = await import('@huggingface/transformers');
-    pipelineInstance = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+    pipelineInstance = await pipeline('feature-extraction', EMBEDDING_MODEL, {
       dtype: 'fp32',
+      revision: EMBEDDING_REVISION,
     });
   }
   return pipelineInstance;

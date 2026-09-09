@@ -224,3 +224,11 @@ Last updated: 2026-09-08
 Open work is tracked only in [GitHub Issues](https://github.com/Significant-Hobbies/email-manager/issues).
 An open issue is a to-do, a linked pull request is in progress, and merge plus
 issue closure makes the work done.
+
+## Search cache repair — 2026-09-09 (source only)
+
+Existing MiniLM is revision-pinned. Search and indexed counts accept only matching
+model identity and valid 384-dimensional normalized vectors. Legacy/incompatible
+vectors remain stored but pending for explicit reindexing; synchronization preserves
+identity. Real browser cache/reload checks pass. [Evidence](docs/knowledge/learnings/embedding-cache-2026-09-09.md).
+Production remains 451b699 until a separately authorized deployment.

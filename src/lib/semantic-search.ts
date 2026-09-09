@@ -1,5 +1,6 @@
 import type { StoredEmail } from './db';
 import { getAllEmails } from './db';
+import { hasCurrentEmbedding, isValidEmbedding } from './embedding-contract';
 import { embed } from './embeddings';
 
 export interface SearchResult {
@@ -20,10 +21,12 @@ function dotProduct(a: number[], b: number[]): number {
 export async function semanticSearch(query: string, accountId: string): Promise<SearchResult[]> {
   const [queryEmbedding, emails] = await Promise.all([embed(query), getAllEmails(accountId)]);
 
+  if (!isValidEmbedding(queryEmbedding)) throw new Error('Model returned an invalid search vector');
+
   const queryLower = query.toLowerCase();
 
   return emails
-    .filter((e) => e.embedding)
+    .filter(hasCurrentEmbedding)
     .map((email) => {
       // Embeddings are normalized, so dot product = cosine similarity
       let score = dotProduct(queryEmbedding, email.embedding!);

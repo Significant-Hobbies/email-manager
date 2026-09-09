@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StoredEmail } from '../db';
 import { getEmailsWithoutEmbedding, storeEmail } from '../db';
+import { EMBEDDING_IDENTITY } from '../embedding-contract';
 import { embed } from '../embeddings';
 import { indexEmailsForSearch } from '../email-index';
 
@@ -9,6 +10,7 @@ vi.mock('../embeddings', () => ({
   embed: vi.fn(),
   prepareEmailText: (email: StoredEmail) => email.subject,
 }));
+const vector = [1, ...new Array(383).fill(0)];
 const emails: StoredEmail[] = ['older', 'newer'].map((id, i) => ({
   id,
   threadId: id,
@@ -24,7 +26,7 @@ const emails: StoredEmail[] = ['older', 'newer'].map((id, i) => ({
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(getEmailsWithoutEmbedding).mockResolvedValue([...emails]);
-  vi.mocked(embed).mockResolvedValue([1, 0]);
+  vi.mocked(embed).mockResolvedValue(vector);
   vi.mocked(storeEmail).mockResolvedValue(undefined);
 });
 
@@ -40,7 +42,7 @@ describe('search indexing completion accounting', () => {
     const signal = { aborted: false };
     vi.mocked(embed).mockImplementation(async (text) => {
       if (text !== 'warmup') signal.aborted = true;
-      return [1, 0];
+      return vector;
     });
     const result = await indexEmailsForSearch({ accountId: 'fixture', signal });
     expect(result).toEqual({ indexed: 0, remaining: 2 });
@@ -55,7 +57,7 @@ describe('search indexing completion accounting', () => {
     const result = await indexEmailsForSearch({ accountId: 'fixture', signal });
     expect(result).toEqual({ indexed: 1, remaining: 1 });
     expect(storeEmail).toHaveBeenCalledExactlyOnceWith(
-      { ...emails[1], embedding: [1, 0] },
+      { ...emails[1], embedding: vector, embeddingModel: EMBEDDING_IDENTITY },
       'fixture'
     );
   });
@@ -74,9 +76,21 @@ describe('search indexing completion accounting', () => {
       remaining: 1,
     });
     expect(storeEmail).toHaveBeenCalledExactlyOnceWith(
-      { ...emails[1], embedding: [1, 0] },
+      { ...emails[1], embedding: vector, embeddingModel: EMBEDDING_IDENTITY },
       'fixture'
     );
+  });
+
+  it.each([
+    [1, 0],
+    [Number.NaN, ...vector.slice(1)],
+    [Number.POSITIVE_INFINITY, ...vector.slice(1)],
+  ])('does not persist or tag invalid model output', async (invalid) => {
+    vi.mocked(embed).mockResolvedValue(invalid);
+    await expect(indexEmailsForSearch({ accountId: 'fixture' })).rejects.toThrow(
+      'invalid search vector'
+    );
+    expect(storeEmail).not.toHaveBeenCalled();
   });
 
   it('rejects a failed write instead of claiming completion', async () => {

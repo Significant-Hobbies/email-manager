@@ -1,4 +1,5 @@
 import { getEmailsWithoutEmbedding, storeEmail } from './db';
+import { EMBEDDING_IDENTITY, isValidEmbedding } from './embedding-contract';
 import { embed, prepareEmailText } from './embeddings';
 
 export const SEMANTIC_INDEX_LIMIT = 500;
@@ -29,7 +30,11 @@ export async function indexEmailsForSearch(options: {
     const text = prepareEmailText(toIndex[i]);
     const embedding = await embed(text);
     if (options.signal?.aborted) break;
-    await storeEmail({ ...toIndex[i], embedding }, options.accountId);
+    if (!isValidEmbedding(embedding)) throw new Error('Model returned an invalid search vector');
+    await storeEmail(
+      { ...toIndex[i], embedding, embeddingModel: EMBEDDING_IDENTITY },
+      options.accountId
+    );
     indexed += 1;
   }
 

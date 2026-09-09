@@ -11,6 +11,7 @@ async function exerciseMailbox(page) {
     const db = await import('../src/lib/db.ts');
     const { ensureInboxEmails, refreshInboxHead } = await import('../src/lib/inbox-sync.ts');
     const { indexEmailsForSearch } = await import('../src/lib/email-index.ts');
+    const { EMBEDDING_IDENTITY } = await import('../src/lib/embedding-contract.ts');
     const { semanticSearch } = await import('../src/lib/semantic-search.ts');
     const { buildWeeklyDigest } = await import('../src/lib/digest.ts');
     await ensureInboxEmails({ accountId: 'fixture-a', target: 2 });
@@ -31,7 +32,8 @@ async function exerciseMailbox(page) {
         ...a[0],
         subject: 'Synthetic B lease renewal',
         body: 'Synthetic B body',
-        embedding: [0, 1],
+        embedding: [0, 1, ...new Array(382).fill(0)],
+        embeddingModel: EMBEDDING_IDENTITY,
       },
       'fixture-b'
     );
@@ -81,6 +83,88 @@ async function exerciseMailbox(page) {
   });
 }
 
+async function verifyCacheMigration(page, identity) {
+  return test('model cache preservation and reindexing', async () => {
+    const result = await page.evaluate(async () => {
+      const db = await import('../src/lib/db.ts');
+      const { refreshInboxHead } = await import('../src/lib/inbox-sync.ts');
+      const { indexEmailsForSearch } = await import('../src/lib/email-index.ts');
+      const { semanticSearch } = await import('../src/lib/semantic-search.ts');
+      const originalFetch = window.fetch;
+      const retained = await db.getAllEmails('fixture-a');
+      const stale = [
+        { ...retained[0], id: 'legacy', embeddingModel: undefined },
+        { ...retained[0], id: 'foreign', embeddingModel: 'foreign-model' },
+        { ...retained[0], id: 'short', embedding: [1, 0] },
+        { ...retained[0], id: 'nan', embedding: [Number.NaN, ...new Array(383).fill(0)] },
+        {
+          ...retained[0],
+          id: 'infinite',
+          embedding: [Number.POSITIVE_INFINITY, ...new Array(383).fill(0)],
+        },
+      ];
+      await db.storeEmails(stale, 'cache-migration');
+      window.fetch = async () =>
+        new Response(JSON.stringify({ emails: stale.slice(0, 2) }), { status: 200 });
+      await refreshInboxHead({ accountId: 'cache-migration' });
+      window.fetch = originalFetch;
+      const refreshedStale = await db.getAllEmails('cache-migration');
+      const invalidBefore = {
+        pending: await db.getPendingIndexCount('cache-migration'),
+        indexed: await db.getIndexedCount('cache-migration'),
+        results: (await semanticSearch('flight', 'cache-migration')).length,
+        bodies: (await db.getAllEmails('cache-migration')).map((email) => email.body),
+      };
+      await indexEmailsForSearch({ accountId: 'cache-migration', limit: 2 });
+      const partial = await db.getPendingIndexCount('cache-migration');
+      await indexEmailsForSearch({ accountId: 'cache-migration' });
+      const currentAfter = await db.getAllEmails('cache-migration');
+      return {
+        staleIdentities: refreshedStale.map((email) => ({
+          id: email.id,
+          model: email.embeddingModel,
+        })),
+        invalidBefore,
+        partial,
+        currentAfter,
+      };
+    });
+    assert.equal(
+      result.staleIdentities.find((email) => email.id === 'foreign').model,
+      'foreign-model'
+    );
+    assert.equal(result.staleIdentities.find((email) => email.id === 'legacy').model, undefined);
+    assert.deepEqual(result.invalidBefore, {
+      pending: 5,
+      indexed: 0,
+      results: 0,
+      bodies: new Array(5).fill('Synthetic A body'),
+    });
+    assert.equal(result.partial, 3);
+    assert.equal(result.currentAfter.length, 5);
+    assert.ok(
+      result.currentAfter.every(
+        (email) => email.embeddingModel === identity && email.body === 'Synthetic A body'
+      )
+    );
+    // Reopen the page, re-import application modules, and read the actual persisted cache.
+    await page.reload();
+    const reopened = await page.evaluate(async () => {
+      const db = await import('../src/lib/db.ts');
+      return {
+        indexed: await db.getIndexedCount('cache-migration'),
+        pending: await db.getPendingIndexCount('cache-migration'),
+        a: await db.getAllEmails('fixture-a'),
+        b: await db.getAllEmails('fixture-b'),
+      };
+    });
+    assert.equal(reopened.indexed, 5);
+    assert.equal(reopened.pending, 0);
+    assert.equal(reopened.a[0].embeddingModel, identity);
+    assert.equal(reopened.b[0].body, 'Synthetic B body');
+  });
+}
+
 test('isolated synthetic mailbox workflow', async () => {
   const server = await createServer({
     configFile: false,
@@ -96,7 +180,7 @@ test('isolated synthetic mailbox workflow', async () => {
           if (id.endsWith('/src/lib/embeddings.ts'))
             return `
         export const prepareEmailText = email => email.subject;
-        export const embed = async text => text.includes('flight') ? [1, 0] : [0, 1];
+        export const embed = async text => [...(text.includes('flight') ? [1, 0] : [0, 1]), ...new Array(382).fill(0)];
       `;
         },
         configureServer(vite) {
@@ -142,6 +226,7 @@ test('isolated synthetic mailbox workflow', async () => {
     });
     await page.goto(`${origin}fixture`);
     const result = await exerciseMailbox(page);
+    await verifyCacheMigration(page, result.a[0].embeddingModel);
     assert.deepEqual(result.cancelledIndex, { indexed: 0, remaining: 1 });
     assert.equal(result.pendingAfterCancel, 1);
     assert.equal(result.a.length, 1);

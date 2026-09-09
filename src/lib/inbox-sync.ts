@@ -75,11 +75,12 @@ async function fetchInboxPage(
 
 function withCachedEmbeddings(
   emails: Email[],
-  embeddingById: Map<string, StoredEmail['embedding']>
+  embeddingById: Map<string, StoredEmail>
 ): StoredEmail[] {
   return emails.map((email) => ({
     ...email,
-    embedding: embeddingById.get(email.id) ?? null,
+    embedding: embeddingById.get(email.id)?.embedding ?? null,
+    embeddingModel: embeddingById.get(email.id)?.embeddingModel,
   }));
 }
 
@@ -101,7 +102,7 @@ export interface EnsureInboxResult {
 export async function ensureInboxEmails(options: EnsureInboxOptions): Promise<EnsureInboxResult> {
   const { target, metadataOnly = false, onProgress, signal, accountId } = options;
   const existing = await getAllEmails(accountId);
-  const embeddingById = new Map(existing.map((e) => [e.id, e.embedding]));
+  const embeddingById = new Map(existing.map((e) => [e.id, e]));
   const meta = await getInboxSyncMeta(accountId);
 
   let fetchedThisRun = 0;
@@ -206,7 +207,7 @@ export async function refreshInboxHead(options: {
   const accountId = options.accountId;
   const maxEmails = options?.maxEmails ?? REFRESH_HEAD_COUNT;
   const existing = await getAllEmails(accountId);
-  const embeddingById = new Map(existing.map((e) => [e.id, e.embedding]));
+  const embeddingById = new Map(existing.map((e) => [e.id, e]));
 
   let fetched = 0;
   let pageToken: string | undefined;
