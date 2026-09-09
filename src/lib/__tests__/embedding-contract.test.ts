@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { EMBEDDING_IDENTITY, hasCurrentEmbedding, isValidEmbedding } from '../embedding-contract';
 
 const vector = [1, ...new Array(383).fill(0)];
+const sparse = new Array(384);
+sparse[0] = 1;
 
 describe('embedding cache contract', () => {
   it('accepts only the current model contract with a normalized finite vector', () => {
@@ -10,9 +12,13 @@ describe('embedding cache contract', () => {
     );
     expect(hasCurrentEmbedding({ embedding: vector })).toBe(false);
     expect(hasCurrentEmbedding({ embedding: vector, embeddingModel: 'other-model' })).toBe(false);
+    expect(hasCurrentEmbedding({ embedding: sparse, embeddingModel: EMBEDDING_IDENTITY })).toBe(
+      false
+    );
   });
 
   it.each([
+    sparse,
     null,
     [],
     [1, 0],

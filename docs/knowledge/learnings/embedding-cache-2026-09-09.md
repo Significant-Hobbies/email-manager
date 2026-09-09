@@ -78,3 +78,12 @@ was suppressed or changed.
 All test browsers/servers closed. The initial sign-in screenshot caught an
 in-progress entrance animation; the retained screenshot was captured after it
 settled and visually inspected. No owner mail or profile was used.
+
+## Review follow-up: sparse vectors
+
+Root review identified that JavaScript `every` and `reduce` skip array holes.
+A sparse 384-slot array with only its first value set to 1 could therefore pass
+validation but produce NaN during ranking. Validation now checks every slot
+through `Array.from`; regression tests reject sparse cached vectors even with
+current identity and reject a sparse query before scoring. Valid dense vectors
+remain searchable. The expanded full gate passes 124 tests.

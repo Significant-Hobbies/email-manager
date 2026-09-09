@@ -5,7 +5,8 @@ const EMBEDDING_DIMENSIONS = 384;
 
 export function isValidEmbedding(vector: unknown): vector is number[] {
   if (!Array.isArray(vector) || vector.length !== EMBEDDING_DIMENSIONS) return false;
-  if (!vector.every((value) => typeof value === 'number' && Number.isFinite(value))) return false;
+  if (!Array.from(vector).every((value) => typeof value === 'number' && Number.isFinite(value)))
+    return false;
   const norm = Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0));
   return Math.abs(norm - 1) < 0.01;
 }
