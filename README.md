@@ -186,4 +186,6 @@ The source repair pins the existing MiniLM model and excludes untagged, incompat
 or malformed cached vectors from search. Their emails remain available; normal
 indexing regenerates valid vectors without deleting mail. Similarity is no longer
 displayed as a match probability. [Evidence and upgrade behavior](docs/knowledge/learnings/embedding-cache-2026-09-09.md).
-Real Google/mailbox and broader ranking gates remain in #54; this is not a deployment receipt.
+Released runtime `24142fee` is verified at 100% traffic with the ordinary-domain
+mobile guest journey. The linked report contains exact release and rollback
+receipts. Real Google/mailbox and broader ranking gates remain in #54.

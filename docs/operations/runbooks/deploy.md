@@ -53,7 +53,7 @@ Cloudflare Workers supports instant rollback via the dashboard or:
 
 ```bash
 wrangler deployments list    # see recent deployments
-wrangler deployments rollback
+pnpm exec wrangler rollback <known-version-id> --name email-manager
 ```
 
 ## D1 migrations

@@ -1,0 +1,50 @@
+{
+  "observedAt": "2026-09-09T07:21:43.641Z",
+  "source": "24142fee34c39a2f941e4c8855b5926c24a62255",
+  "scope": "Real public landing -> sign-in only; no account credentials, synthetic/real mail, model inference or unsubscribe",
+  "origin": "https://mail.significanthobbies.com",
+  "bundle": {
+    "path": "/assets/index-Dw903OH4.js",
+    "sha256": "b618032cc0f5f6d27644941802440921f9eb8c8437b61fc7de2bc0ef4146eded",
+    "byteExact": true
+  },
+  "endpoints": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "googleConfigured": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200
+    },
+    {
+      "path": "/api/emails",
+      "status": 401
+    }
+  ],
+  "landing": {
+    "heading": "Remember the email.\nNot the exact words.",
+    "width": {
+      "client": 390,
+      "scroll": 390
+    }
+  },
+  "login": {
+    "url": "https://mail.significanthobbies.com/app",
+    "button": true,
+    "width": {
+      "client": 390,
+      "scroll": 390
+    }
+  },
+  "pageErrors": [],
+  "workerVersion": "9ad4e473-50cb-4cfb-8735-895e4a909941",
+  "deployment": "5df53469-9e8c-40fa-b4bb-59febc65be2d",
+  "trafficPercent": 100,
+  "ciRun": 34323190467,
+  "guard": "6/6 passed without bypass",
+  "deployCommand": "pnpm run deploy",
+  "rollbackVersion": "b42e2e27-b358-4ee7-a338-f9cc9d4cbc69",
+  "rollbackSource": "451b699fc6010812ae168b6e776d45f16544b2f9"
+}

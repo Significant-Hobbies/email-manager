@@ -67,7 +67,7 @@ Wrangler/Workers-types peer warning remains; application/Worker typechecks pass.
 
 All six existing desktop/mobile Playwright assertions pass against the actual
 built assets and a synthetic logged-out session API. The first unisolated mobile
-run reached the Google button but failed on Clarity collect CORS pageerrors from
+run reached the Google button but failed on Clarity collect CORS page errors from
 localhost. The final local-only test CSP blocks third-party telemetry while
 allowing the actual SaaS Maker footer scripts. This proves landing text, footer,
 touch target, no overflow and navigation to the real sign-in component; it does
@@ -87,3 +87,28 @@ validation but produce NaN during ranking. Validation now checks every slot
 through `Array.from`; regression tests reject sparse cached vectors even with
 current identity and reject a sparse query before scoring. Valid dense vectors
 remain searchable. The expanded full gate passes 124 tests.
+
+## Authorized release and ordinary-domain acceptance
+
+Runtime `24142fee34c39a2f941e4c8855b5926c24a62255` passed exact CI 34323190467
+and all six Fleet deployment gates. `pnpm run deploy` published Worker version
+`9ad4e473-50cb-4cfb-8735-895e4a909941`, deployment
+`5df53469-9e8c-40fa-b4bb-59febc65be2d`, at 100% traffic with the full source tag.
+[Release receipt](embedding-cache-release-2026-09-09.json).
+
+Ordinary `https://mail.significanthobbies.com/app` serves the byte-identical
+`/assets/index-Dw903OH4.js` built from that source. Real 390px public navigation
+reaches the actual Google sign-in button; landing and login have no overflow
+or page errors. Health/session return 200 and anonymous mail returns 401. Hosted
+telemetry produced no page errors in this guest check; no test CSP or mocked
+response was used for hosted acceptance.
+
+[Hosted landing](email-deployed-landing-phone.png) ·
+[Hosted sign-in](email-deployed-login-phone.png). Both screenshots were inspected.
+Google credentials/callback, account switching, real mailbox search and
+unsubscribe remain unqualified. This release does not make the full app shareable.
+
+Known rollback: `pnpm exec wrangler rollback b42e2e27-b358-4ee7-a338-f9cc9d4cbc69 --name email-manager` restores prior runtime 451b699; no rollback was performed.
+No D1 migration, provider configuration, credentials or mailbox writes occurred.
+The release-record commit changes documentation only and does not require
+another deployment.
