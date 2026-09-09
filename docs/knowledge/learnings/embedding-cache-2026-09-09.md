@@ -48,3 +48,33 @@ Cancellation/retry and delayed account-A writes retain their existing checks.
 No production migration or deployment, real mail, unsubscribe, native
 installation, or Google-account acceptance is claimed. Those requirements remain
 in [issue 54](https://github.com/Significant-Hobbies/email-manager/issues/54).
+
+## Dependency gates required before push
+
+The full quality gate independently found four newly blocking advisories. A
+separate dependency commit upgrades the static landing from Astro 6.4.8 to 7.2.8,
+retains its sitemap integration and adds documented `compressHTML: true` to
+preserve inline word boundaries. Existing root Vite 8.1.5 and Wrangler 4.114.0 stay
+unchanged. Scoped overrides use Sharp 0.35.4 (`miniflare>sharp` and the existing
+`sharp@>=0.34.0 <0.35.0` selector), js-yaml 4.3.2 and svgo 4.1.0. No new direct
+production dependency or provider configuration was introduced.
+
+Resolved advisories: GHSA-26w7-cxv4-gfx2, GHSA-rgj7-g3m4-5g8c,
+GHSA-2883-xcg3-v3hh and GHSA-w27v-7q3p-w38r. Full quality passes 121 tests, all
+existing thresholds, and zero critical/high advisories; the complete production
+build, sitemap/canonical checks and 47-document validation pass. Existing
+Wrangler/Workers-types peer warning remains; application/Worker typechecks pass.
+
+All six existing desktop/mobile Playwright assertions pass against the actual
+built assets and a synthetic logged-out session API. The first unisolated mobile
+run reached the Google button but failed on Clarity collect CORS pageerrors from
+localhost. The final local-only test CSP blocks third-party telemetry while
+allowing the actual SaaS Maker footer scripts. This proves landing text, footer,
+touch target, no overflow and navigation to the real sign-in component; it does
+not qualify hosted analytics or Google callback completion. No product assertion
+was suppressed or changed.
+
+[390px landing](email-astro7-phone.png) · [390px sign-in](email-login-phone.png).
+All test browsers/servers closed. The initial sign-in screenshot caught an
+in-progress entrance animation; the retained screenshot was captured after it
+settled and visually inspected. No owner mail or profile was used.

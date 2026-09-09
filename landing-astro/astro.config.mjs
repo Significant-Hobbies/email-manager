@@ -14,6 +14,8 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://mail.significanthobbies.com',
   output: 'static',
+  // Preserve HTML-aware word spacing when Astro 7 renders inline elements.
+  compressHTML: true,
   trailingSlash: 'never',
   // Emit `index.html` (the only page) directly at dist root.
   build: {
