@@ -130,6 +130,7 @@ blockquote { margin: 0; font-family: var(--display); font-size: clamp(2.5rem, 4.
 .closing-note { color: var(--ink-soft); font-size: 0.8rem; }
 
 .site-footer { display: grid; grid-template-columns: 1fr auto; gap: 50px; align-items: end; padding-block: 64px 54px; }
+.site-footer .footer-signup { grid-column: 1 / -1; }
 .site-footer p { max-width: 42ch; margin: 16px 0 0; color: var(--ink-soft); font-size: 0.88rem; }
 .site-footer nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px 22px; color: var(--ink-soft); font-size: 0.84rem; }
 

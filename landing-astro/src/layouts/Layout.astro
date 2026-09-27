@@ -87,9 +87,25 @@ const structuredData = {
     />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" /></noscript>
     <script is:inline src="/app-health-log.js" defer></script>
+    <script
+      is:inline
+      defer
+      src="https://health.sassmaker.com/tracker.js"
+      data-key="ahk_pub_37f68db75b5fa443187ef0be60cb69608b24b9aa44bb5c7bc23668e6e99f03b3"
+      data-project="app-import-8defb952e4519d85bccde5f102a72950f9d788bae692feb4e6c75ee053623664"
+      data-identity="persistent"
+    ></script>
   </head>
   <body>
     <slot />
+    <script is:inline type="module" src="https://sassmaker.com/newsletter-capture.js"></script>
+    <script is:inline>
+      document.addEventListener('click', (event) => {
+        const link = event.target instanceof Element ? event.target.closest('[data-log]') : null;
+        const name = link?.getAttribute('data-log');
+        if (name?.startsWith('kinetic.cta.')) window.appHealth?.track(name);
+      });
+    </script>
     <script is:inline src="/project-strip.js" data-project="email-manager" defer></script>
     <script
       is:inline
