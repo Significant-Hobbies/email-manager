@@ -101,10 +101,28 @@ const structuredData = {
     <script is:inline type="module" src="https://sassmaker.com/newsletter-capture.js"></script>
     <script is:inline>
       document.addEventListener('click', (event) => {
-        const link = event.target instanceof Element ? event.target.closest('[data-log]') : null;
+        const link = event.target instanceof Element ? event.target.closest('a[data-log]') : null;
         const name = link?.getAttribute('data-log');
-        if (name?.startsWith('kinetic.cta.')) window.appHealth?.track(name);
-      });
+        const tracker = window.appHealth;
+        if (!name?.startsWith('kinetic.cta.') || !tracker) return;
+
+        tracker.track(name);
+
+        const destination = link instanceof HTMLAnchorElement ? new URL(link.href) : null;
+        const plainAppNavigation =
+          destination?.origin === location.origin &&
+          destination.pathname === '/app' &&
+          event.button === 0 &&
+          !event.metaKey &&
+          !event.ctrlKey &&
+          !event.shiftKey &&
+          !event.altKey &&
+          link?.target !== '_blank';
+        if (!plainAppNavigation) return;
+
+        event.preventDefault();
+        void tracker.flush().finally(() => location.assign(destination.href));
+      }, { capture: true });
     </script>
     <script is:inline src="/project-strip.js" data-project="email-manager" defer></script>
     <script
