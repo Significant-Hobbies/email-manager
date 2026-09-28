@@ -31,6 +31,15 @@ describe('Content Security Policy', () => {
     expect(scriptSources).toContain('https://sassmaker.com');
   });
 
+  it('allows the App Health browser tracker script', () => {
+    const policy = SECURITY_HEADERS['Content-Security-Policy'];
+    const scriptSources = policy
+      .split('; ')
+      .find((directive) => directive.startsWith('script-src '));
+
+    expect(scriptSources).toContain('https://health.sassmaker.com');
+  });
+
   it('allows Microsoft Clarity collection without broadening other script origins', () => {
     const policy = SECURITY_HEADERS['Content-Security-Policy'];
     const directives = policy.split('; ');
