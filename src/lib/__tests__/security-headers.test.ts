@@ -62,6 +62,7 @@ describe('Content Security Policy', () => {
 
     expect(contentSecurityPolicy).toMatch(/connect-src[^;]*https:\/\/sassmaker\.com/);
     expect(contentSecurityPolicy).toMatch(/script-src[^;]*https:\/\/sassmaker\.com/);
+    expect(contentSecurityPolicy).toMatch(/script-src[^;]*https:\/\/health\.sassmaker\.com/);
     expect(contentSecurityPolicy).toMatch(/connect-src[^;]*https:\/\/\*\.clarity\.ms/);
     expect(contentSecurityPolicy).toMatch(/connect-src[^;]*https:\/\/c\.bing\.com/);
     expect(contentSecurityPolicy).toMatch(/script-src[^;]*https:\/\/www\.clarity\.ms/);
