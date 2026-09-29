@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
+import { honoMiddleware } from '@saas-maker/app-health/hono';
 
 import { handleAgentEdge } from './agent-edge.mjs';
+import { resolveAppHealthClient, type AppHealthBindings } from './lib/app-health';
 import { createAuth, isGoogleOAuthConfigured, type AuthEnv } from './lib/auth';
 import { getGmailAccessToken } from './lib/get-access-token';
 import { getEmail, getThread, listEmails } from './lib/gmail';
@@ -8,16 +10,24 @@ import { classifyThreadReplyStatus, isUnsubscribeSentEmail } from './lib/sent-re
 import { SECURITY_HEADERS, withSecurityHeaders } from './lib/security-headers';
 import { withTiming } from './lib/timing';
 
-export type Env = AuthEnv & {
-  ASSETS: Fetcher;
-  NODE_ENV?: string;
-};
+export type Env = AuthEnv &
+  AppHealthBindings & {
+    ASSETS: Fetcher;
+    NODE_ENV?: string;
+  };
 
 const AUTH_COOKIE_FRAGMENTS = ['session_token', 'session-token'];
 const SPA_PATH_PREFIXES = ['/app', '/about', '/privacy', '/terms'];
 const LANDING_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800';
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.use(
+  '/api/*',
+  honoMiddleware<{ Bindings: Env }>({
+    client: (c) => resolveAppHealthClient(c.env),
+  })
+);
 
 app.use('/api/*', async (c, next) => {
   await next();

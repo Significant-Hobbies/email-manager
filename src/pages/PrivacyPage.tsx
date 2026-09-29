@@ -58,6 +58,13 @@ export function PrivacyPage() {
         analytics, and locally generated content are not uploaded to Clarity. The application also
         uses PostHog for bounded product events and does not send inbox content in those events.
       </p>
+      <p className="mt-2">
+        Separately, if optional App Health monitoring is configured for the Worker, it receives
+        endpoint summaries containing only the HTTP method, matched route template, status,
+        duration, and timestamp. The integration excludes mailbox IDs and content, email addresses,
+        request and response bodies, query values, headers, cookies, identities, and logs. It sends
+        no endpoint measurements when the optional monitoring key is not configured.
+      </p>
 
       <h2 className="mt-8 text-base font-semibold">Google API data</h2>
       <p className="mt-2">
