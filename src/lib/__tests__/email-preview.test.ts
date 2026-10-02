@@ -16,7 +16,10 @@ const moduleUrl = `data:text/javascript;base64,${Buffer.from(moduleCode).toStrin
 
 beforeAll(async () => {
   if (process.env.PREVIEW_BROWSER_TESTS !== '1') return;
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({
+    headless: true,
+    channel: process.env.PREVIEW_BROWSER_CHANNEL || undefined,
+  });
   page = await browser.newPage();
   page.on('request', (request) => {
     if (/^https?:/.test(request.url())) resourceRequests.push(request.url());
