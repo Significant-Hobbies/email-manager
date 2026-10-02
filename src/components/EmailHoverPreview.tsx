@@ -20,6 +20,69 @@ interface Props {
   className?: string;
 }
 
+interface PreviewPanelProps {
+  preview: Email;
+  loading: boolean;
+  position: { top: number; left: number };
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
+function PreviewPanel({
+  preview,
+  loading,
+  position,
+  onMouseEnter,
+  onMouseLeave,
+}: PreviewPanelProps) {
+  const sentAt = formatEmailDate(preview.date);
+  const previewDoc = wrapEmailHtml(preview.body || undefined, emailPreviewText(preview));
+  return (
+    <div
+      role="tooltip"
+      className="fixed z-[80] w-[min(380px,calc(100vw-24px))] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-glow)]"
+      style={{ top: position.top, left: position.left }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="border-b border-[var(--border)]/70 px-3.5 py-2.5">
+        <p className="text-sm font-medium leading-snug text-[var(--text)] text-pretty">
+          {preview.subject}
+        </p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]" title={sentAt.title}>
+          {sentAt.label}
+          {loading ? ' · Loading…' : null}
+        </p>
+      </div>
+      <div className="email-reading-pane max-h-56 overflow-hidden bg-white">
+        <iframe
+          srcDoc={previewDoc}
+          title={`Preview: ${preview.subject}`}
+          className="h-56 w-full border-0 bg-white"
+          sandbox="allow-popups allow-popups-to-escape-sandbox"
+        />
+      </div>
+    </div>
+  );
+}
+
+function previewPosition(rect: DOMRect) {
+  const panelWidth = 380;
+  const panelHeight = 280;
+  const margin = 12;
+  let left = rect.right + margin;
+  let top = rect.top;
+
+  if (left + panelWidth > window.innerWidth - margin) {
+    left = Math.max(margin, rect.left - panelWidth - margin);
+  }
+  if (top + panelHeight > window.innerHeight - margin) {
+    top = Math.max(margin, window.innerHeight - panelHeight - margin);
+  }
+
+  return { top, left };
+}
+
 export function EmailHoverPreview({ email, children, className }: Props) {
   const { accountId } = useMailboxStore();
   const cacheKey = JSON.stringify([accountId, email.id]);
@@ -35,20 +98,7 @@ export function EmailHoverPreview({ email, children, className }: Props) {
     const rect = anchorRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const panelWidth = 380;
-    const panelHeight = 280;
-    const margin = 12;
-    let left = rect.right + margin;
-    let top = rect.top;
-
-    if (left + panelWidth > window.innerWidth - margin) {
-      left = Math.max(margin, rect.left - panelWidth - margin);
-    }
-    if (top + panelHeight > window.innerHeight - margin) {
-      top = Math.max(margin, window.innerHeight - panelHeight - margin);
-    }
-
-    setPosition({ top, left });
+    setPosition(previewPosition(rect));
   }, []);
 
   const loadDetail = useCallback(async () => {
@@ -97,8 +147,6 @@ export function EmailHoverPreview({ email, children, className }: Props) {
   }, []);
 
   const preview = detail?.key === cacheKey ? detail.email : email;
-  const sentAt = formatEmailDate(preview.date);
-  const previewDoc = wrapEmailHtml(preview.body || undefined, emailPreviewText(preview));
 
   return (
     <>
@@ -115,31 +163,13 @@ export function EmailHoverPreview({ email, children, className }: Props) {
 
       {open &&
         createPortal(
-          <div
-            role="tooltip"
-            className="fixed z-[80] w-[min(380px,calc(100vw-24px))] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-glow)]"
-            style={{ top: position.top, left: position.left }}
+          <PreviewPanel
+            preview={preview}
+            loading={loading}
+            position={position}
             onMouseEnter={() => window.clearTimeout(closeTimerRef.current)}
             onMouseLeave={handleLeave}
-          >
-            <div className="border-b border-[var(--border)]/70 px-3.5 py-2.5">
-              <p className="text-sm font-medium leading-snug text-[var(--text)] text-pretty">
-                {preview.subject}
-              </p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]" title={sentAt.title}>
-                {sentAt.label}
-                {loading ? ' · Loading…' : null}
-              </p>
-            </div>
-            <div className="email-reading-pane max-h-56 overflow-hidden bg-white">
-              <iframe
-                srcDoc={previewDoc}
-                title={`Preview: ${preview.subject}`}
-                className="h-56 w-full border-0 bg-white"
-                sandbox="allow-popups allow-popups-to-escape-sandbox"
-              />
-            </div>
-          </div>,
+          />,
           document.body
         )}
     </>
