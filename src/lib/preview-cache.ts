@@ -49,14 +49,13 @@ export function hydrateEmailPreview(
   })();
   requests.set(key, { promise: request, consumers });
   void request.catch(() => {
-    if (
-      consumers.every((consumer) => consumer?.aborted) &&
-      requests.get(key)?.promise === request
-    ) {
+    // A later visibility/hover attempt may retry; rejection never starts a request.
+    // An older failure must not evict a replacement for the same message.
+    if (requests.get(key)?.promise === request) {
       requests.delete(key);
     }
   });
-  // Bound memory and failed attempts too; no automatic retries while mounted.
+  // Bound cached reads; no automatic retries while mounted.
   if (requests.size > 200) requests.delete(requests.keys().next().value!);
   return request;
 }
