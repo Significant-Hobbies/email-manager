@@ -1,5 +1,7 @@
 'use client';
 
+import { EmailSnippet } from '@/components/EmailSnippet';
+
 import { RefreshCw, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Email } from '@/lib/gmail';
@@ -136,7 +138,9 @@ function EmailRow(props: EmailRowProps) {
         </span>
       </div>
       <div className={`text-sm truncate ${unread ? 'font-semibold' : ''}`}>{email.subject}</div>
-      <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">{email.snippet}</div>
+      <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+        <EmailSnippet email={email} />
+      </div>
     </button>
   );
 }

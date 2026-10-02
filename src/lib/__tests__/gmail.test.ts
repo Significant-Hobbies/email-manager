@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getEmail, getThread, listEmails } from '../gmail';
+import { wrapEmailHtml } from '../email-html';
+import { emailPreviewText } from '../email-preview';
 
 describe('gmail', () => {
   let originalFetch: typeof globalThis.fetch;
@@ -157,6 +159,184 @@ describe('gmail', () => {
   });
 
   describe('parseMessage edge cases (via getEmail)', () => {
+    it.each([
+      ['you&#39;re &amp; me', "you're & me"],
+      ['&quot;yes&quot; &apos;no&apos; &lt;ok&gt;', '"yes" \'no\' <ok>'],
+      ['caf&#233; &#x1F600; &nbsp;ready', 'café 😀 \u00a0ready'],
+      ['literal &amp;#39;', 'literal &#39;'],
+      [
+        'you&#39;re &unknown; &#xZZ; &#39 &#-1; &#0; &#xD800; &#1114112;',
+        "you're &unknown; &#xZZ; &#39 &#-1; &#0; &#xD800; &#1114112;",
+      ],
+      ['&lt;script&gt;alert(1)&lt;/script&gt;', '<script>alert(1)</script>'],
+    ])('decodes body-confirmed snippet %s as plain text', async (snippet, text) => {
+      const message = makeMessage({
+        snippet,
+        payload: {
+          mimeType: 'multipart/alternative',
+          parts: [
+            {
+              mimeType: 'text/plain',
+              body: { data: Buffer.from(text).toString('base64url') },
+            },
+          ],
+        },
+      });
+      globalThis.fetch = vi.fn().mockResolvedValue(jsonResponse(message)) as typeof fetch;
+      const email = await getEmail('token', 'msg-1');
+      expect(email.snippet).toBe(snippet);
+      expect(emailPreviewText(email)).toBe(text.replace(/\s+/g, ' ').trim());
+      expect(message.snippet).toBe(snippet);
+      const preview = wrapEmailHtml(undefined, emailPreviewText(email));
+      expect(preview).not.toContain('<script>');
+      expect(preview).toContain('<pre>');
+    });
+
+    it.each([
+      'literal &#39; &amp; &lt;script&gt;',
+      '&unknown; &#xZZ; &#39 &#-1; &#0; &#xD800; &#1114112;',
+      '<script>alert(1)</script><img src=x onerror=alert(1)>',
+    ])('preserves genuine plain-text snippet %s', async (snippet) => {
+      globalThis.fetch = vi.fn().mockResolvedValue(
+        jsonResponse(
+          makeMessage({
+            snippet,
+            payload: { mimeType: 'text/plain', body: { data: btoa(snippet) } },
+          })
+        )
+      ) as typeof fetch;
+      const email = await getEmail('token', 'msg-1');
+      expect(email.snippet).toBe(snippet);
+      expect(wrapEmailHtml(undefined, email.snippet)).not.toContain('<script>');
+      expect(wrapEmailHtml(undefined, email.snippet)).not.toContain('<img');
+    });
+
+    it('preserves raw snippets on metadata fetches', async () => {
+      const snippet = 'you&#39;re';
+      for (const payload of [
+        { headers: [] },
+        { mimeType: 'text/html', body: { data: btoa('<p>you&#39;re</p>') } },
+        { mimeType: 'text/plain', body: { data: btoa('Unrelated text') } },
+        {
+          mimeType: 'text/plain',
+          filename: 'attachment.txt',
+          body: { data: btoa("you're") },
+        },
+      ]) {
+        globalThis.fetch = vi
+          .fn()
+          .mockResolvedValue(jsonResponse(makeMessage({ snippet, payload }))) as typeof fetch;
+        expect((await getEmail('token', 'msg-1', { metadataOnly: true })).snippet).toBe(snippet);
+      }
+    });
+
+    it('shares confirmed normalization across list, query, sent and thread fetches', async () => {
+      const message = makeMessage({
+        snippet: 'you&#39;re',
+        payload: { mimeType: 'text/plain', body: { data: btoa("you're") } },
+      });
+      for (const options of [{}, { q: 'test' }, { labelIds: ['SENT'] }]) {
+        globalThis.fetch = vi
+          .fn()
+          .mockResolvedValueOnce(jsonResponse({ messages: [{ id: 'msg-1' }] }))
+          .mockResolvedValueOnce(jsonResponse(message)) as typeof fetch;
+        expect(emailPreviewText((await listEmails('token', options)).emails[0])).toBe("you're");
+      }
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValue(jsonResponse({ messages: [message] })) as typeof fetch;
+      expect(
+        emailPreviewText(
+          (await getThread('token', 'thread-1', { metadataOnly: false })).messages[0]
+        )
+      ).toBe("you're");
+    });
+
+    it('prefers nested plain MIME content and ignores attached text', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue(
+        jsonResponse(
+          makeMessage({
+            snippet: 'literal &amp;',
+            payload: {
+              mimeType: 'multipart/mixed',
+              parts: [
+                {
+                  mimeType: 'text/plain',
+                  filename: 'attachment.txt',
+                  body: { data: btoa('wrong') },
+                },
+                { mimeType: 'text/html', body: { data: btoa('<p>HTML &amp;</p>') } },
+                {
+                  mimeType: 'multipart/alternative',
+                  parts: [{ mimeType: 'text/plain', body: { data: btoa('literal &amp;') } }],
+                },
+              ],
+            },
+          })
+        )
+      ) as typeof fetch;
+      const email = await getEmail('token', 'msg-1');
+      expect(email.previewContent).toEqual({ mimeType: 'text/plain', text: 'literal &amp;' });
+      expect(emailPreviewText(email)).toBe('literal &amp;');
+    });
+
+    it.each([
+      {
+        mimeType: 'text/plain',
+        filename: '',
+        headers: [{ name: 'content-disposition', value: 'AtTaChMeNt; filename=""' }],
+        body: { data: btoa('attachment contents') },
+      },
+      {
+        mimeType: 'message/rfc822',
+        parts: [{ mimeType: 'text/plain', body: { data: btoa('attached message') } }],
+      },
+      {
+        mimeType: 'multipart/mixed',
+        headers: [{ name: 'Content-Disposition', value: 'attachment' }],
+        parts: [{ mimeType: 'text/plain', body: { data: btoa('nested attachment') } }],
+      },
+    ])('ignores unnamed attachment or attached message content', async (attachment) => {
+      globalThis.fetch = vi.fn().mockResolvedValue(
+        jsonResponse(
+          makeMessage({
+            payload: {
+              mimeType: 'multipart/mixed',
+              parts: [
+                attachment,
+                { mimeType: 'text/html', body: { data: btoa('<p>Actual body</p>') } },
+              ],
+            },
+          })
+        )
+      ) as typeof fetch;
+      expect((await getEmail('token', 'msg-1')).previewContent).toEqual({
+        mimeType: 'text/html',
+        text: '<p>Actual body</p>',
+      });
+    });
+
+    it('skips malformed preview data while retaining a valid HTML body and list batch', async () => {
+      const message = makeMessage({
+        payload: {
+          mimeType: 'multipart/alternative',
+          parts: [
+            { mimeType: 'text/plain', body: { data: '%%%' } },
+            { mimeType: 'text/html', body: { data: btoa('<p>Readable body</p>') } },
+          ],
+        },
+      });
+      globalThis.fetch = vi.fn().mockResolvedValue(jsonResponse(message)) as typeof fetch;
+      const email = await getEmail('token', 'msg-1');
+      expect(email.body).toBe('<p>Readable body</p>');
+      expect(email.previewContent).toEqual({ mimeType: 'text/html', text: email.body });
+      globalThis.fetch = vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponse({ messages: [{ id: 'msg-1' }] }))
+        .mockResolvedValueOnce(jsonResponse(message)) as typeof fetch;
+      expect((await listEmails('token', {})).emails).toEqual([email]);
+    });
+
     it('falls back to (no subject) when subject header missing', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue(
         jsonResponse({

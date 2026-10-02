@@ -24,6 +24,7 @@ import { indexEmailsForSearch, SEMANTIC_INDEX_LIMIT } from '@/lib/email-index';
 import { DEFAULT_INBOX_SYNC, ensureInboxEmails, refreshInboxHead } from '@/lib/inbox-sync';
 import { loadSubscriptionSenders } from '@/lib/subscription-senders';
 import { isInboxStale } from '@/lib/sync-age';
+import { runLockedOperation } from '@/lib/mailbox-operation';
 
 interface MailboxStoreContextValue {
   accountId: string;
@@ -56,36 +57,6 @@ export function useMailboxStore() {
     throw new Error('useMailboxStore must be used within MailboxStoreProvider');
   }
   return ctx;
-}
-
-async function runLockedOperation(
-  mountedRef: RefObject<boolean>,
-  syncLockRef: RefObject<boolean>,
-  setActive: (v: boolean) => void,
-  setProgress: (s: string) => void,
-  startMsg: string,
-  errorLabel: string,
-  operation: () => Promise<unknown>,
-  refresh: () => Promise<void>
-) {
-  if (syncLockRef.current) return;
-  syncLockRef.current = true;
-  setActive(true);
-  setProgress(startMsg);
-  try {
-    await operation();
-    if (mountedRef.current) {
-      setProgress('');
-      await refresh();
-    }
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : errorLabel;
-    if (mountedRef.current) setProgress(`Error: ${message}`);
-    throw err;
-  } finally {
-    syncLockRef.current = false;
-    if (mountedRef.current) setActive(false);
-  }
 }
 
 interface MailboxState {

@@ -1,5 +1,7 @@
 'use client';
 
+import { EmailSnippet } from '@/components/EmailSnippet';
+
 import { Brain, RefreshCw, Search, Sparkles } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import type { Email } from '@/lib/gmail';
@@ -158,7 +160,9 @@ function SearchResults({
             </div>
           </div>
           <p className="truncate text-sm font-medium">{email.subject}</p>
-          <p className="mt-1 truncate text-xs text-[var(--text-muted)]">{email.snippet}</p>
+          <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
+            <EmailSnippet email={email} />
+          </p>
         </button>
       ))}
     </div>
@@ -171,6 +175,7 @@ interface SearchEmptyStateProps {
   query: string;
   searching: boolean;
   needsIndexOnly: boolean;
+  busy: boolean;
   indexed: number;
   total: number;
   onRetry: () => void;
@@ -185,6 +190,7 @@ function SearchEmptyState(props: SearchEmptyStateProps) {
     query,
     searching,
     needsIndexOnly,
+    busy,
     indexed,
     total,
     onRetry,
@@ -230,9 +236,9 @@ function SearchEmptyState(props: SearchEmptyStateProps) {
         }
         action={
           needsIndexOnly
-            ? { label: 'Index for search', onClick: onIndex }
+            ? { label: 'Index for search', onClick: onIndex, disabled: busy }
             : indexed === 0
-              ? { label: 'Sync & Index', onClick: onSync }
+              ? { label: 'Sync & Index', onClick: onSync, disabled: busy }
               : undefined
         }
       />
@@ -368,6 +374,7 @@ export function SemanticSearch({ onSelect }: Props) {
             query={query}
             searching={searching}
             needsIndexOnly={needsIndexOnly}
+            busy={busy}
             indexed={indexed}
             total={total}
             onRetry={() => performSearch(query)}

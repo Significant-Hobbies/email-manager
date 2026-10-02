@@ -6,11 +6,12 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 
 import { formatEmailDate } from '@/lib/format-date';
+import { emailPreviewText } from '@/lib/email-preview';
 import { wrapEmailHtml } from '@/lib/email-html';
+import { hydrateEmailPreview } from '@/lib/preview-cache';
 import type { Email } from '@/lib/gmail';
 import { cn } from '@/lib/utils';
 
-const bodyCache = new Map<string, Email>();
 const HOVER_DELAY_MS = 280;
 
 interface Props {
@@ -27,7 +28,7 @@ export function EmailHoverPreview({ email, children, className }: Props) {
   const openTimerRef = useRef<number | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState<Email | null>(bodyCache.get(cacheKey) ?? null);
+  const [detail, setDetail] = useState<{ key: string; email: Email } | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const updatePosition = useCallback(() => {
@@ -51,21 +52,10 @@ export function EmailHoverPreview({ email, children, className }: Props) {
   }, []);
 
   const loadDetail = useCallback(async () => {
-    const cached = bodyCache.get(cacheKey);
-    if (cached?.body) {
-      setDetail(cached);
-      return;
-    }
-
     setLoading(true);
     try {
-      const res = await fetch(`/api/emails/${email.id}`, {
-        headers: { 'X-Mailbox-Account-Id': accountId },
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as Email;
-      bodyCache.set(cacheKey, data);
-      setDetail(data);
+      const data = await hydrateEmailPreview(email, accountId);
+      setDetail({ key: cacheKey, email: data });
     } catch {
       // Preview is best-effort — never block the list.
     } finally {
@@ -106,9 +96,9 @@ export function EmailHoverPreview({ email, children, className }: Props) {
     };
   }, []);
 
-  const preview = detail ?? email;
+  const preview = detail?.key === cacheKey ? detail.email : email;
   const sentAt = formatEmailDate(preview.date);
-  const previewDoc = wrapEmailHtml(preview.body || undefined, preview.snippet);
+  const previewDoc = wrapEmailHtml(preview.body || undefined, emailPreviewText(preview));
 
   return (
     <>

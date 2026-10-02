@@ -41,7 +41,10 @@ export interface Email {
   from: string;
   to: string;
   date: string;
+  /** Raw Gmail snippet; its entity encoding is not guaranteed. */
   snippet: string;
+  /** Verified MIME source for text-only previews. Absent on metadata/legacy rows. */
+  previewContent?: { mimeType: 'text/plain' | 'text/html'; text: string } | null;
   body: string;
   labelIds: string[];
   unsubscribeLink: string | null;
@@ -88,6 +91,39 @@ function getHeader(headers: any[], name: string): string {
   return headers?.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
 }
 
+function previewContent(payload: any): Email['previewContent'] {
+  if (!payload || payload.filename) return null;
+  const plain = findPreviewPart(payload, 'text/plain');
+  return plain ?? findPreviewPart(payload, 'text/html');
+}
+
+function findPreviewPart(
+  payload: any,
+  mimeType: 'text/plain' | 'text/html'
+): Email['previewContent'] {
+  const disposition = getHeader(payload?.headers, 'Content-Disposition');
+  if (
+    !payload ||
+    payload.filename ||
+    /^\s*attachment(?:\s*;|\s*$)/i.test(disposition) ||
+    payload.mimeType?.toLowerCase() === 'message/rfc822'
+  ) {
+    return null;
+  }
+  if (payload.mimeType === mimeType && payload.body?.data) {
+    try {
+      return { mimeType, text: decodeBase64Url(payload.body.data) };
+    } catch {
+      // Optional preview provenance must not break an otherwise readable message.
+    }
+  }
+  for (const part of payload.parts ?? []) {
+    const found = findPreviewPart(part, mimeType);
+    if (found) return found;
+  }
+  return null;
+}
+
 function parseUnsubscribeLink(unsubHeader: string): string | null {
   if (!unsubHeader) return null;
   const httpRe = new RegExp('<(https?://[^>]+)>');
@@ -101,7 +137,7 @@ function parseUnsubscribeLink(unsubHeader: string): string | null {
   return null;
 }
 
-function parseMessage(msg: any): Email {
+function parseMessage(msg: any, metadataOnly = false): Email {
   const hdrs = msg.payload?.headers ?? [];
   const unsubHeader = getHeader(hdrs, 'List-Unsubscribe');
   const unsubPostHeader = getHeader(hdrs, 'List-Unsubscribe-Post');
@@ -115,6 +151,7 @@ function parseMessage(msg: any): Email {
     to: getHeader(hdrs, 'To'),
     date: getHeader(hdrs, 'Date'),
     snippet: msg.snippet ?? '',
+    ...(!metadataOnly ? { previewContent: previewContent(msg.payload) } : {}),
     body: decodeBody(msg.payload),
     labelIds: msg.labelIds ?? [],
     unsubscribeLink,
@@ -179,7 +216,7 @@ export async function listEmails(
     const results = await Promise.all(
       batch.map(async (m: any) => {
         const msg = await gmailFetch(accessToken, `/messages/${m.id}?${msgParams}`);
-        return parseMessage(msg);
+        return parseMessage(msg, options.metadataOnly);
       })
     );
     emails.push(...results);
@@ -205,7 +242,7 @@ export async function getThread(
     accessToken,
     `/threads/${threadId}?${params}`
   );
-  const messages = (data.messages ?? []).map((msg) => parseMessage(msg));
+  const messages = (data.messages ?? []).map((msg) => parseMessage(msg, format === 'metadata'));
   return { id: threadId, messages };
 }
 
@@ -223,5 +260,5 @@ export async function getEmail(
     path = `/messages/${id}?format=full`;
   }
   const data = await gmailFetch(accessToken, path);
-  return parseMessage(data);
+  return parseMessage(data, options?.metadataOnly);
 }
