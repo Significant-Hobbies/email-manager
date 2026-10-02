@@ -6,17 +6,81 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 
 import { formatEmailDate } from '@/lib/format-date';
+import { emailPreviewText } from '@/lib/email-preview';
 import { wrapEmailHtml } from '@/lib/email-html';
+import { hydrateEmailPreview } from '@/lib/preview-cache';
 import type { Email } from '@/lib/gmail';
 import { cn } from '@/lib/utils';
 
-const bodyCache = new Map<string, Email>();
 const HOVER_DELAY_MS = 280;
 
 interface Props {
   email: Email;
   children: ReactNode;
   className?: string;
+}
+
+interface PreviewPanelProps {
+  preview: Email;
+  loading: boolean;
+  position: { top: number; left: number };
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
+function PreviewPanel({
+  preview,
+  loading,
+  position,
+  onMouseEnter,
+  onMouseLeave,
+}: PreviewPanelProps) {
+  const sentAt = formatEmailDate(preview.date);
+  const previewDoc = wrapEmailHtml(preview.body || undefined, emailPreviewText(preview));
+  return (
+    <div
+      role="tooltip"
+      className="fixed z-[80] w-[min(380px,calc(100vw-24px))] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-glow)]"
+      style={{ top: position.top, left: position.left }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="border-b border-[var(--border)]/70 px-3.5 py-2.5">
+        <p className="text-sm font-medium leading-snug text-[var(--text)] text-pretty">
+          {preview.subject}
+        </p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]" title={sentAt.title}>
+          {sentAt.label}
+          {loading ? ' · Loading…' : null}
+        </p>
+      </div>
+      <div className="email-reading-pane max-h-56 overflow-hidden bg-white">
+        <iframe
+          srcDoc={previewDoc}
+          title={`Preview: ${preview.subject}`}
+          className="h-56 w-full border-0 bg-white"
+          sandbox="allow-popups allow-popups-to-escape-sandbox"
+        />
+      </div>
+    </div>
+  );
+}
+
+function previewPosition(rect: DOMRect) {
+  const panelWidth = 380;
+  const panelHeight = 280;
+  const margin = 12;
+  let left = rect.right + margin;
+  let top = rect.top;
+
+  if (left + panelWidth > window.innerWidth - margin) {
+    left = Math.max(margin, rect.left - panelWidth - margin);
+  }
+  if (top + panelHeight > window.innerHeight - margin) {
+    top = Math.max(margin, window.innerHeight - panelHeight - margin);
+  }
+
+  return { top, left };
 }
 
 export function EmailHoverPreview({ email, children, className }: Props) {
@@ -27,45 +91,21 @@ export function EmailHoverPreview({ email, children, className }: Props) {
   const openTimerRef = useRef<number | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState<Email | null>(bodyCache.get(cacheKey) ?? null);
+  const [detail, setDetail] = useState<{ key: string; email: Email } | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const updatePosition = useCallback(() => {
     const rect = anchorRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const panelWidth = 380;
-    const panelHeight = 280;
-    const margin = 12;
-    let left = rect.right + margin;
-    let top = rect.top;
-
-    if (left + panelWidth > window.innerWidth - margin) {
-      left = Math.max(margin, rect.left - panelWidth - margin);
-    }
-    if (top + panelHeight > window.innerHeight - margin) {
-      top = Math.max(margin, window.innerHeight - panelHeight - margin);
-    }
-
-    setPosition({ top, left });
+    setPosition(previewPosition(rect));
   }, []);
 
   const loadDetail = useCallback(async () => {
-    const cached = bodyCache.get(cacheKey);
-    if (cached?.body) {
-      setDetail(cached);
-      return;
-    }
-
     setLoading(true);
     try {
-      const res = await fetch(`/api/emails/${email.id}`, {
-        headers: { 'X-Mailbox-Account-Id': accountId },
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as Email;
-      bodyCache.set(cacheKey, data);
-      setDetail(data);
+      const data = await hydrateEmailPreview(email, accountId);
+      setDetail({ key: cacheKey, email: data });
     } catch {
       // Preview is best-effort — never block the list.
     } finally {
@@ -106,9 +146,7 @@ export function EmailHoverPreview({ email, children, className }: Props) {
     };
   }, []);
 
-  const preview = detail ?? email;
-  const sentAt = formatEmailDate(preview.date);
-  const previewDoc = wrapEmailHtml(preview.body || undefined, preview.snippet);
+  const preview = detail?.key === cacheKey ? detail.email : email;
 
   return (
     <>
@@ -125,31 +163,13 @@ export function EmailHoverPreview({ email, children, className }: Props) {
 
       {open &&
         createPortal(
-          <div
-            role="tooltip"
-            className="fixed z-[80] w-[min(380px,calc(100vw-24px))] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-glow)]"
-            style={{ top: position.top, left: position.left }}
+          <PreviewPanel
+            preview={preview}
+            loading={loading}
+            position={position}
             onMouseEnter={() => window.clearTimeout(closeTimerRef.current)}
             onMouseLeave={handleLeave}
-          >
-            <div className="border-b border-[var(--border)]/70 px-3.5 py-2.5">
-              <p className="text-sm font-medium leading-snug text-[var(--text)] text-pretty">
-                {preview.subject}
-              </p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]" title={sentAt.title}>
-                {sentAt.label}
-                {loading ? ' · Loading…' : null}
-              </p>
-            </div>
-            <div className="email-reading-pane max-h-56 overflow-hidden bg-white">
-              <iframe
-                srcDoc={previewDoc}
-                title={`Preview: ${preview.subject}`}
-                className="h-56 w-full border-0 bg-white"
-                sandbox="allow-popups allow-popups-to-escape-sandbox"
-              />
-            </div>
-          </div>,
+          />,
           document.body
         )}
     </>

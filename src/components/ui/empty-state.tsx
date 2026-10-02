@@ -8,7 +8,7 @@ interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description: string;
-  action?: { label: string; onClick: () => void };
+  action?: { label: string; onClick: () => void; disabled?: boolean };
   children?: ReactNode;
 }
 
@@ -26,7 +26,7 @@ export function EmptyState({ icon: Icon, title, description, action, children }:
         {action || children ? (
           <div className="flex flex-col items-center gap-3 px-6 pb-6">
             {action ? (
-              <Button type="button" onClick={action.onClick}>
+              <Button type="button" onClick={action.onClick} disabled={action.disabled}>
                 {action.label}
               </Button>
             ) : null}

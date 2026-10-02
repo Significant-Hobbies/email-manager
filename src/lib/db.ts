@@ -124,3 +124,14 @@ export async function setInboxSyncMeta(meta: InboxSyncMeta, accountId: string): 
   const db = await getDB(accountId);
   await db.put('meta', meta, INBOX_SYNC_META_KEY);
 }
+
+/** Patch only preview provenance, preserving current embeddings and mailbox state. */
+export async function storeEmailPreview(email: Email, accountId: string): Promise<void> {
+  const db = await getDB(accountId);
+  const tx = db.transaction('emails', 'readwrite');
+  const current = await tx.store.get(email.id);
+  if (current && email.previewContent !== undefined) {
+    await tx.store.put({ ...current, previewContent: email.previewContent });
+  }
+  await tx.done;
+}

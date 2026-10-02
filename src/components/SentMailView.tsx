@@ -1,5 +1,7 @@
 'use client';
 
+import { EmailSnippet } from '@/components/EmailSnippet';
+
 import { useMailboxStore } from '@/components/MailboxStoreProvider';
 
 import { RefreshCw } from 'lucide-react';
@@ -113,7 +115,9 @@ function SentMailRow(props: {
         </div>
       </div>
       <div className="truncate text-sm">{email.subject}</div>
-      <div className="mt-0.5 truncate text-xs text-[var(--text-muted)]">{email.snippet}</div>
+      <div className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
+        <EmailSnippet email={email} />
+      </div>
     </button>
   );
 }
