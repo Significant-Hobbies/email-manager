@@ -37,3 +37,6 @@ coverage/
 # Local code-intelligence caches — regenerated on demand, machine-specific.
 .codegrok/
 .repomap.tags.cache.v1/
+
+# Private agent qualification evidence
+.fleet-local/
