@@ -20,17 +20,6 @@ function sendToAnalytics(metric: VitalMetric) {
       id: metric.id,
       navigation_type: metric.navigationType,
     });
-    return;
-  }
-
-  try {
-    const body = JSON.stringify({
-      project: import.meta.env.VITE_PROJECT_SLUG ?? 'email-manager',
-      ...metric,
-    });
-    navigator.sendBeacon('https://vitals.fleet.workers.dev/collect', body);
-  } catch {
-    // Analytics must never break the app.
   }
 }
 
