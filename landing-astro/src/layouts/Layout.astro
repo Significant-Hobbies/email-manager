@@ -2,6 +2,8 @@
 import '@/styles/landing.css';
 
 interface Props {
+  /** This route renders its own declarative product footer. */
+  hasProductFooter?: boolean;
   title: string;
   description: string;
 }
@@ -38,6 +40,7 @@ const structuredData = {
     },
   ],
 };
+const hasProductFooter = Astro.props.hasProductFooter === true;
 ---
 
 <!doctype html>
@@ -98,7 +101,21 @@ const structuredData = {
   </head>
   <body>
     <slot />
-    <script is:inline type="module" src="https://sassmaker.com/newsletter-capture.js"></script>
+    {!hasProductFooter && <fleet-footer-extension
+    product-name="Kinetic"
+    art-src="https://sassmaker.com/footer-art/email-manager.webp"
+    class="precise-footer"
+    signature-name="Kinetic"
+    font-base="/fonts/fleet-footer-precise-v1/"
+    theme="light"
+    surface="app"
+    art-alt="Kinetic: A deliberate inbox sorting desk centers one selected sealed envelope and a hand-operated review tray. Different sender-sized envelope groups occupy the wings; no sender identity or message content is visible."
+    art-width="2169"
+    art-height="725"
+    art-position="50% 50%"
+    art-credit="Original illustration for Kinetic"
+  ></fleet-footer-extension>}
+    <script is:inline type="module" src="https://sassmaker.com/newsletter-capture.js?v=precise-b0adaa67"></script>
     <script is:inline>
       document.addEventListener('click', (event) => {
         const link = event.target instanceof Element ? event.target.closest('a[data-log]') : null;
@@ -124,12 +141,17 @@ const structuredData = {
         void tracker.flush().finally(() => location.assign(destination.href));
       }, { capture: true });
     </script>
-    <script is:inline src="/project-strip.js" data-project="email-manager" defer></script>
+    <script is:inline src="https://sassmaker.com/project-strip.js?v=precise-b0adaa67" data-project="email-manager" defer data-theme="light"
+      data-host-only="true"
+    ></script>
     <script
       is:inline
-      src="https://sassmaker.com/ai-chat-footer.js"
+      src="https://sassmaker.com/ai-chat-footer.js?v=precise-b0adaa67"
       data-name="Kinetic"
       defer
+      data-theme="light"
+      data-host-only="true"
+      data-project="email-manager"
     ></script>
   </body>
 </html>
