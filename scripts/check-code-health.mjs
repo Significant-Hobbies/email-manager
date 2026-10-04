@@ -77,7 +77,8 @@ function checkDependencies() {
   const result = run('pnpm', ['audit', '--json'], { allowFailure: true });
   const report = JSON.parse(result.stdout);
   // Accepted migration/tooling debt: https://github.com/Significant-Hobbies/email-manager/issues/32
-  const accepted = new Set(['GHSA-5p2g-fcmc-qvqq', 'GHSA-w3rx-r6r6-pgpr']);
+  // GHSA-ch52-4w7c-c8xp: http-cache-semantics <=4.2.0 via dev tooling; no patched version exists upstream.
+  const accepted = new Set(['GHSA-5p2g-fcmc-qvqq', 'GHSA-ch52-4w7c-c8xp', 'GHSA-w3rx-r6r6-pgpr']);
   const severe = Object.values(report.advisories ?? {}).filter((advisory) =>
     ['critical', 'high'].includes(advisory.severity)
   );
