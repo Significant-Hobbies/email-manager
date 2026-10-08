@@ -33,12 +33,12 @@ configuration remain authoritative for implementation details and schedules.
 
 | File | Role |
 | --- | --- |
-| [`agents.md`](../agents.md) | Concise agent bootloader — purpose, commands, constraints, doc navigation. |
+| [`AGENTS.md`](../AGENTS.md) | Concise agent bootloader — purpose, commands, constraints, doc navigation. |
 | [`STATUS.md`](../STATUS.md) | Short current-state view: objective, active work, blockers, next steps. |
 | [`PROJECT_STATUS.md`](../PROJECT_STATUS.md) | Detailed timeline + shipped features. Kept at root for fleet contract checks. |
 | [`README.md`](../README.md) | Public repo overview, quick start, privacy model. |
 | [`AUDIT.md`](../AUDIT.md) | Security and quality audit log. |
-| [`CLAUDE.md`](../CLAUDE.md) | Pointer file (`@agents.md`) for Claude Code. |
+| [`CLAUDE.md`](../CLAUDE.md) | Pointer file (`@AGENTS.md`) for Claude Code. |
 
 ## Maintenance rules
 

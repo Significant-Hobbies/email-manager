@@ -141,7 +141,7 @@ The remaining production setup footgun is Google OAuth: the deployed callback UR
 must be present in the Google Cloud Console OAuth app, otherwise sign-in fails with
 `redirect_uri_mismatch`.
 
-See `agents.md` for implementation conventions and deeper architecture notes.
+See `AGENTS.md` for implementation conventions and deeper architecture notes.
 See `docs/README.md` for the full knowledge-system layout (product, architecture,
 decisions, development, operations, learnings).
 
