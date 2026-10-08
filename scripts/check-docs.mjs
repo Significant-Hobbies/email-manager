@@ -19,7 +19,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const docsRoot = path.join(repoRoot, 'docs');
 
 const requiredFiles = [
-  'agents.md',
+  'AGENTS.md',
   'STATUS.md',
   'PROJECT_STATUS.md',
   'README.md',
@@ -94,7 +94,7 @@ async function walkMarkdown(dir, out = []) {
 }
 
 const rootMarkdown = [
-  'agents.md',
+  'AGENTS.md',
   'STATUS.md',
   'PROJECT_STATUS.md',
   'README.md',
