@@ -4,6 +4,7 @@ import type { EventInput } from '@saas-maker/app-health';
 export interface AppHealthBindings {
   APP_HEALTH_INGEST_KEY?: string;
   APP_HEALTH_ENVIRONMENT?: string;
+  APP_HEALTH_STAGE_SAMPLE_RATE?: string;
 }
 
 /** Resolve an opt-in client and drop response-size metadata from endpoint events. */
