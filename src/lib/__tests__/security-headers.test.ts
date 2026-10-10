@@ -49,6 +49,7 @@ describe('Content Security Policy', () => {
     expect(connectSources).toContain('https://*.clarity.ms');
     expect(connectSources).toContain('https://c.bing.com');
     expect(scriptSources).toContain('https://www.clarity.ms');
+    expect(scriptSources).toContain('https://scripts.clarity.ms');
   });
 
   it('allows the shared footer origins on static landing responses', () => {
@@ -66,6 +67,7 @@ describe('Content Security Policy', () => {
     expect(contentSecurityPolicy).toMatch(/connect-src[^;]*https:\/\/\*\.clarity\.ms/);
     expect(contentSecurityPolicy).toMatch(/connect-src[^;]*https:\/\/c\.bing\.com/);
     expect(contentSecurityPolicy).toMatch(/script-src[^;]*https:\/\/www\.clarity\.ms/);
+    expect(contentSecurityPolicy).toMatch(/script-src[^;]*https:\/\/scripts\.clarity\.ms/);
   });
 
   it('loads the Email Manager Clarity project with the entire SPA root masked', () => {
