@@ -1,14 +1,10 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import react from '@astrojs/react';
+import tailwindcss from '@tailwindcss/vite';
 
-// Pure static output — no SSR adapter. The landing is hand-written
-// HTML/CSS with no client islands. CSS inlines into the HTML
-// (`build.inlineStylesheets: 'always'`) so the LCP path is one
-// round-trip: HTML → paint. No external fonts — system stack only,
-// matching the existing email-manager layout (no next/font in
-// src/app/layout.tsx).
-//
+// Pure static output — the overlay copies cacheable /_astro assets.
 // Lightning CSS replaces the default PostCSS pipeline as both
 // transformer and minifier (fleet web-stack standard).
 export default defineConfig({
@@ -17,13 +13,13 @@ export default defineConfig({
   // Preserve HTML-aware word spacing when Astro 7 renders inline elements.
   compressHTML: true,
   trailingSlash: 'never',
-  // Emit `index.html` (the only page) directly at dist root.
+  // Preserve the existing flat HTML routes.
   build: {
     format: 'file',
-    inlineStylesheets: 'always',
   },
-  integrations: [sitemap()],
+  integrations: [sitemap(), react()],
   vite: {
+    plugins: [tailwindcss()],
     css: { transformer: 'lightningcss' },
     build: { cssMinify: 'lightningcss' },
   },
