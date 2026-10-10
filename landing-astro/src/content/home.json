@@ -36,9 +36,26 @@
     },
     "assetBase": "/images/",
     "tokens": {
-      "--font-display": "\"Instrument Serif\", Georgia, serif",
-      "--font-accent": "\"Instrument Serif\", Georgia, serif",
-      "--display-weight": "400"
+      "--brand": "#5b43d6",
+      "--brand-soft": "#dcd3ff",
+      "--brand-ink": "#38259c",
+      "--accent-ink": "#5b43d6",
+      "--background": "#fbf9ff",
+      "--foreground": "#191625",
+      "--muted-foreground": "#625d70",
+      "--primary": "#191625",
+      "--primary-foreground": "#ffffff",
+      "--display-weight": "400",
+      "--radius": "1.75rem"
+    },
+    "fonts": {
+      "display": "newsreader",
+      "text": "figtree",
+      "accent": "newsreader",
+      "accentStyle": "italic"
+    },
+    "surface": {
+      "backdrop": "gradient"
     }
   },
   "product": "Kinetic",
@@ -77,15 +94,13 @@
       "href": "#inside"
     },
     "note": "Read-only Gmail · No server-side mailbox copy · In-browser ONNX",
-    "window": {
-      "title": "kinetic / semantic search",
+    "layout": "split",
+    "card": {
       "src": "search-stage.webp",
       "alt": "Illustrative Kinetic semantic search product preview with sample results for flight confirmation from last summer",
       "width": 1400,
-      "height": 1189,
-      "chrome": "none"
-    },
-    "caption": "illustrative semantic search product preview"
+      "height": 1189
+    }
   },
   "sections": [
     {
