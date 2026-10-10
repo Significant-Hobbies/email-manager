@@ -16,6 +16,7 @@ export default defineConfig({
   // Preserve the existing flat HTML routes.
   build: {
     format: 'file',
+    inlineStylesheets: 'always',
   },
   integrations: [sitemap(), react()],
   vite: {
