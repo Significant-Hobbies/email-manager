@@ -8,6 +8,7 @@ import { getGmailAccessToken } from './lib/get-access-token';
 import { getEmail, getThread, listEmails } from './lib/gmail';
 import { classifyThreadReplyStatus, isUnsubscribeSentEmail } from './lib/sent-reply';
 import { SECURITY_HEADERS, withSecurityHeaders } from './lib/security-headers';
+import { takeColdStart, withStageTiming } from './lib/stage-timing';
 import { withTiming } from './lib/timing';
 
 export type Env = AuthEnv &
@@ -20,7 +21,12 @@ const AUTH_COOKIE_FRAGMENTS = ['session_token', 'session-token'];
 const SPA_PATH_PREFIXES = ['/app', '/about', '/privacy', '/terms'];
 const LANDING_CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: { stageCold: number } }>();
+
+app.use('*', async (c, next) => {
+  c.set('stageCold', takeColdStart());
+  await next();
+});
 
 app.use(
   '/api/*',
@@ -139,105 +145,123 @@ function emailListErrorResponse(err: unknown) {
   return { error: clientMsg, status: status as 500 };
 }
 
-app.get('/api/emails', async (c) => {
-  const token = await getGmailAccessToken(c.env, c.req.raw.headers);
-  if (!token) return c.json({ error: 'Unauthorized' }, 401);
+app.get('/api/emails', (c) =>
+  withStageTiming(c, '/api/emails', async (timing) => {
+    const token = await timing.measure('auth_ms', () =>
+      getGmailAccessToken(c.env, c.req.raw.headers)
+    );
+    if (!token) return c.json({ error: 'Unauthorized' }, 401);
 
-  const { q, label, pageToken, maxResults, metadataOnly, withReplyStatus } = parseEmailListParams(
-    new URL(c.req.url).searchParams
-  );
+    const { q, label, pageToken, maxResults, metadataOnly, withReplyStatus } = parseEmailListParams(
+      new URL(c.req.url).searchParams
+    );
 
-  try {
-    const result = await listEmails(token, {
-      q,
-      labelIds: label ? [label] : undefined,
-      pageToken,
-      maxResults,
-      metadataOnly,
-    });
-
-    if (label === 'SENT' && result.emails.length > 0) {
-      result.emails = result.emails.filter((email) => !isUnsubscribeSentEmail(email));
-    }
-
-    if (withReplyStatus && label === 'SENT' && result.emails.length > 0) {
-      await annotateReplyStatus(result, token, c.env, c.req.raw.headers);
-    }
-
-    return c.json(result);
-  } catch (err: unknown) {
-    const { error, status } = emailListErrorResponse(err);
-    return c.json({ error }, status);
-  }
-});
-
-app.get('/api/emails/:id', async (c) => {
-  const token = await getGmailAccessToken(c.env, c.req.raw.headers);
-  if (!token) return c.json({ error: 'Unauthorized' }, 401);
-
-  try {
-    const email = await getEmail(token, c.req.param('id'));
-    return c.json(email);
-  } catch (err: unknown) {
-    const error = err as { message?: string; status?: number; code?: number };
-    console.error('GET /api/emails/:id error:', error?.message ?? err);
-    const status =
-      typeof (error?.status ?? error?.code) === 'number' ? (error.status ?? error.code)! : 500;
-    const clientMsg =
-      status === 429 ? 'Too many requests, try again later' : 'Failed to fetch email';
-    return c.json({ error: clientMsg }, status as 500);
-  }
-});
-
-app.post('/api/emails/:id/unsubscribe', async (c) => {
-  const token = await getGmailAccessToken(c.env, c.req.raw.headers);
-  if (!token) return c.json({ error: 'Unauthorized' }, 401);
-
-  try {
-    // Only the unsubscribe headers are needed here; a metadata fetch avoids
-    // downloading and base64-decoding the full message body.
-    const email = await getEmail(token, c.req.param('id'), { metadataOnly: true });
-
-    if (!email.unsubscribeLink || !email.unsubscribePost) {
-      return c.json(
-        { error: 'One-click unsubscribe not supported', fallbackUrl: email.unsubscribeLink },
-        400
-      );
-    }
-
-    let unsubUrl: URL;
     try {
-      unsubUrl = new URL(email.unsubscribeLink);
-    } catch {
-      return c.json({ error: 'Invalid unsubscribe URL' }, 400);
-    }
-    if (unsubUrl.protocol !== 'https:') {
-      return c.json({ error: 'Unsubscribe URL must be HTTPS' }, 400);
-    }
-
-    const res = await fetch(unsubUrl.href, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'List-Unsubscribe=One-Click',
-    });
-
-    if (!res.ok) {
-      return c.json(
-        {
-          error: `Unsubscribe request failed (${res.status})`,
-          fallbackUrl: email.unsubscribeLink,
-        },
-        502
+      const result = await timing.measure('gmail_ms', () =>
+        listEmails(token, {
+          q,
+          labelIds: label ? [label] : undefined,
+          pageToken,
+          maxResults,
+          metadataOnly,
+        })
       );
-    }
 
-    return c.json({ ok: true });
-  } catch (err: unknown) {
-    const error = err as { message?: string };
-    console.error('Unsubscribe error:', error?.message ?? err);
-    return c.json({ error: 'Failed to unsubscribe' }, 500);
-  }
-});
+      if (label === 'SENT' && result.emails.length > 0) {
+        result.emails = result.emails.filter((email) => !isUnsubscribeSentEmail(email));
+      }
+
+      if (withReplyStatus && label === 'SENT' && result.emails.length > 0) {
+        await timing.measure('gmail_ms', () =>
+          annotateReplyStatus(result, token, c.env, c.req.raw.headers)
+        );
+      }
+
+      return c.json(result);
+    } catch (err: unknown) {
+      const { error, status } = emailListErrorResponse(err);
+      return c.json({ error }, status);
+    }
+  })
+);
+
+app.get('/api/emails/:id', (c) =>
+  withStageTiming(c, '/api/emails/:id', async (timing) => {
+    const token = await timing.measure('auth_ms', () =>
+      getGmailAccessToken(c.env, c.req.raw.headers)
+    );
+    if (!token) return c.json({ error: 'Unauthorized' }, 401);
+
+    try {
+      const email = await timing.measure('gmail_ms', () => getEmail(token, c.req.param('id')));
+      return c.json(email);
+    } catch (err: unknown) {
+      const error = err as { message?: string; status?: number; code?: number };
+      console.error('GET /api/emails/:id error:', error?.message ?? err);
+      const status =
+        typeof (error?.status ?? error?.code) === 'number' ? (error.status ?? error.code)! : 500;
+      const clientMsg =
+        status === 429 ? 'Too many requests, try again later' : 'Failed to fetch email';
+      return c.json({ error: clientMsg }, status as 500);
+    }
+  })
+);
+
+app.post('/api/emails/:id/unsubscribe', (c) =>
+  withStageTiming(c, '/api/emails/:id/unsubscribe', async (timing) => {
+    const token = await timing.measure('auth_ms', () =>
+      getGmailAccessToken(c.env, c.req.raw.headers)
+    );
+    if (!token) return c.json({ error: 'Unauthorized' }, 401);
+
+    try {
+      // Only the unsubscribe headers are needed here; a metadata fetch avoids
+      // downloading and base64-decoding the full message body.
+      const email = await timing.measure('gmail_ms', () =>
+        getEmail(token, c.req.param('id'), { metadataOnly: true })
+      );
+
+      if (!email.unsubscribeLink || !email.unsubscribePost) {
+        return c.json(
+          { error: 'One-click unsubscribe not supported', fallbackUrl: email.unsubscribeLink },
+          400
+        );
+      }
+
+      let unsubUrl: URL;
+      try {
+        unsubUrl = new URL(email.unsubscribeLink);
+      } catch {
+        return c.json({ error: 'Invalid unsubscribe URL' }, 400);
+      }
+      if (unsubUrl.protocol !== 'https:') {
+        return c.json({ error: 'Unsubscribe URL must be HTTPS' }, 400);
+      }
+
+      const res = await fetch(unsubUrl.href, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'List-Unsubscribe=One-Click',
+      });
+
+      if (!res.ok) {
+        return c.json(
+          {
+            error: `Unsubscribe request failed (${res.status})`,
+            fallbackUrl: email.unsubscribeLink,
+          },
+          502
+        );
+      }
+
+      return c.json({ ok: true });
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      console.error('Unsubscribe error:', error?.message ?? err);
+      return c.json({ error: 'Failed to unsubscribe' }, 500);
+    }
+  })
+);
 
 function hasAuthCookie(request: Request): boolean {
   const cookie = request.headers.get('cookie');
@@ -364,6 +388,8 @@ async function routeRequest(request: Request, env: Env, ctx: ExecutionContext): 
 
   // Discovery owns public documents and its catalog, never product API routes.
   if (!url.pathname.startsWith('/api/') || url.pathname === '/api/ai') {
+    // Non-API requests also consume the isolate's first-request marker.
+    takeColdStart();
     const agent = handleAgentEdge(request);
     if (agent) return withSecurityHeaders(agent);
   }
