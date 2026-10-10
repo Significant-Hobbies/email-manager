@@ -42,15 +42,30 @@
 <!-- fleet-jsonld:end -->
     <script>
       "use strict";
-      window.clarity = window.clarity || ((...args) => {
-        window.clarity.q = window.clarity.q || [];
-        window.clarity.q.push(args);
-      });
-      const clarityScript = document.createElement("script");
-      clarityScript.async = true;
-      clarityScript.src = "https://www.clarity.ms/tag/y6bt70yq9x";
-      const firstScript = document.getElementsByTagName("script")[0];
-      firstScript.parentNode?.insertBefore(clarityScript, firstScript);
+      (() => {
+        window.clarity = window.clarity || ((...args) => {
+          window.clarity.q = window.clarity.q || [];
+          window.clarity.q.push(args);
+        });
+        let done = false;
+        let timer;
+        const events = ["pointerdown", "keydown", "touchstart", "scroll"];
+        function loadClarity() {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          for (const event of events) removeEventListener(event, loadClarity);
+          const clarityScript = document.createElement("script");
+          clarityScript.async = true;
+          clarityScript.src = "https://www.clarity.ms/tag/y6bt70yq9x";
+          const firstScript = document.getElementsByTagName("script")[0];
+          firstScript.parentNode?.insertBefore(clarityScript, firstScript);
+        }
+        for (const event of events) {
+          addEventListener(event, loadClarity, { passive: true, once: true });
+        }
+        timer = setTimeout(loadClarity, 90_000);
+      })();
       window.clarity("set","project_id","email-manager");
     </script>
 </head>
