@@ -12,7 +12,13 @@
     },
     "landing-astro": {
       "entry": ["public/project-strip.js", "public/app-health-log.js"],
-      "ignoreDependencies": ["lightningcss", "wrangler", "lucide-react", "motion", "radix-ui"]
+      "ignoreDependencies": [
+        "lightningcss",
+        "wrangler",
+        "lucide-react",
+        "motion",
+        "radix-ui"
+      ]
     }
   }
 }
