@@ -1,0 +1,221 @@
+{
+  "template": "workbench",
+  "page": {
+    "title": "Kinetic — Remember the email, not the exact words",
+    "description": "A local-first Gmail workspace for semantic search, sender intelligence, and filter recipes. Your emails and embeddings stay in your browser.",
+    "theme": "paper",
+    "mode": "light",
+    "canonical": "https://mail.significanthobbies.com/",
+    "og": {
+      "image": "https://mail.significanthobbies.com/opengraph-image",
+      "siteName": "Kinetic"
+    },
+    "jsonLd": {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "Kinetic",
+          "url": "https://mail.significanthobbies.com",
+          "description": "A local-first Gmail workspace for semantic search, sender intelligence, and filter recipes. Your emails and embeddings stay in your browser."
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Kinetic",
+          "alternateName": "Email Manager",
+          "applicationCategory": "ProductivityApplication",
+          "operatingSystem": "Web",
+          "url": "https://mail.significanthobbies.com",
+          "image": "https://mail.significanthobbies.com/opengraph-image",
+          "description": "A local-first Gmail workspace for semantic search, sender intelligence, and filter recipes. Your emails and embeddings stay in your browser.",
+          "sameAs": [
+            "https://github.com/Significant-Hobbies/email-manager"
+          ]
+        }
+      ]
+    },
+    "assetBase": "/images/",
+    "tokens": {
+      "--font-display": "\"Instrument Serif\", Georgia, serif",
+      "--font-accent": "\"Instrument Serif\", Georgia, serif",
+      "--display-weight": "400"
+    }
+  },
+  "product": "Kinetic",
+  "url": "https://mail.significanthobbies.com",
+  "mark": "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 22 22\"%3E%3Ctext x=\"3\" y=\"18\" font-family=\"sans-serif\" font-weight=\"700\" font-size=\"20\" fill=\"%235947a6\"%3EK%3C/text%3E%3C/svg%3E",
+  "nav": [
+    {
+      "label": "product",
+      "href": "#inside"
+    },
+    {
+      "label": "privacy",
+      "href": "#privacy"
+    },
+    {
+      "label": "faq",
+      "href": "/faq"
+    }
+  ],
+  "header": {
+    "primary": {
+      "label": "open app",
+      "href": "/app"
+    }
+  },
+  "hero": {
+    "eyebrow": "local-first inbox intelligence",
+    "title": "remember the email. *not the exact words.*",
+    "lede": "Search Gmail by meaning, see which senders fill your week, and turn recurring noise into durable filters. The model, messages, and search index stay in your browser.",
+    "primary": {
+      "label": "connect gmail and search",
+      "href": "/app"
+    },
+    "secondary": {
+      "label": "see the product",
+      "href": "#inside"
+    },
+    "note": "Read-only Gmail · No server-side mailbox copy · In-browser ONNX",
+    "window": {
+      "title": "kinetic / semantic search",
+      "src": "search-stage.webp",
+      "alt": "Illustrative Kinetic semantic search product preview with sample results for flight confirmation from last summer",
+      "width": 1400,
+      "height": 1189,
+      "chrome": "none"
+    },
+    "caption": "illustrative semantic search product preview"
+  },
+  "sections": [
+    {
+      "id": "inside",
+      "blocks": [
+        {
+          "type": "statement",
+          "eyebrow": "look inside",
+          "title": "a working *inbox cockpit.*",
+          "lede": "Kinetic pairs three jobs that normally live in separate tools: recall an email, understand the senders behind the volume, and make Gmail quieter.",
+          "points": [
+            {
+              "title": "describe what you remember.",
+              "body": "Embeddings are generated and compared on-device."
+            },
+            {
+              "title": "see who owns your inbox.",
+              "body": "Sender analytics turns an abstract feeling of overload into a ranked, inspectable list."
+            },
+            {
+              "title": "turn recognition into relief.",
+              "body": "Review suggested Gmail filters, export them, and let the rules work when Kinetic is closed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "privacy",
+      "surface": "muted",
+      "blocks": [
+        {
+          "type": "statement",
+          "eyebrow": "privacy is architecture",
+          "title": "your inbox *stays yours.*",
+          "lede": "Messages, cached bodies, embeddings, and the semantic index live in IndexedDB in your browser. Kinetic’s server keeps only the authentication records needed for the read-only Gmail connection and proxies live Gmail calls."
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "blocks": [
+        {
+          "type": "faq",
+          "title": "before you hand any app *your inbox.*",
+          "items": [
+            {
+              "q": "can kinetic send, archive, or delete email?",
+              "a": "No. The Gmail connection is read-only. Kinetic cannot compose, send, archive, or delete messages."
+            },
+            {
+              "q": "where does semantic search run?",
+              "a": "Inside your browser with HuggingFace Transformers and ONNX. The resulting embeddings stay in IndexedDB on that device."
+            },
+            {
+              "q": "what happens when i clear browser storage?",
+              "a": "Your local index and cached mailbox data are removed. Kinetic must rebuild them from Gmail after you reconnect."
+            },
+            {
+              "q": "does kinetic replace gmail?",
+              "a": "No. It is a focused workspace for semantic recall, sender analysis, unsubscribe help, and filter recipes on top of Gmail."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "compact": true,
+      "blocks": [
+        {
+          "type": "cta",
+          "title": "find the email *you can almost describe.*",
+          "primary": {
+            "label": "connect gmail and search",
+            "href": "/app"
+          },
+          "note": "Read-only access. Local index. Disconnect whenever you want."
+        }
+      ]
+    }
+  ],
+  "footer": {
+    "summary": "Semantic Gmail search and sender intelligence that runs in your browser.",
+    "catalogId": "email-manager",
+    "capture": "newsletter",
+    "privacyUrl": "https://mail.significanthobbies.com/privacy",
+    "groups": [
+      {
+        "title": "product",
+        "links": [
+          {
+            "label": "open app",
+            "href": "/app"
+          }
+        ]
+      },
+      {
+        "title": "resources",
+        "links": [
+          {
+            "label": "about",
+            "href": "/about"
+          },
+          {
+            "label": "privacy",
+            "href": "/privacy"
+          },
+          {
+            "label": "terms",
+            "href": "/terms"
+          },
+          {
+            "label": "faq",
+            "href": "/faq"
+          },
+          {
+            "label": "changelog",
+            "href": "/changelog"
+          }
+        ]
+      },
+      {
+        "title": "connect",
+        "links": [
+          {
+            "label": "github",
+            "href": "https://github.com/Significant-Hobbies/email-manager"
+          }
+        ]
+      }
+    ]
+  }
+}

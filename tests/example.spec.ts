@@ -26,14 +26,14 @@ test.describe('landing page', () => {
     ).toBeVisible();
 
     await expect(page.getByText(/local-first inbox intelligence/i)).toBeVisible();
-    await expect(page.getByText(/ranked locally.*nothing uploaded/i)).toBeVisible();
 
     await expect(
       page.getByRole('link', { name: /connect gmail and search/i }).first()
     ).toBeVisible();
 
-    await expect(page.locator('[data-ai-provider]')).toHaveCount(5);
-    await expect(page.locator('portfolio-project-strip')).toHaveCount(1);
+    await expect(
+      page.locator('footer[data-fleet-footer="studio"][data-catalog-id="email-manager"]')
+    ).toHaveCount(1);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
