@@ -386,11 +386,10 @@ function maybeRedirectToApp(url: URL, request: Request): Response | null {
 async function routeRequest(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const url = new URL(request.url);
 
-  // Non-API requests also consume the isolate's first-request marker.
-  if (!url.pathname.startsWith('/api/') || url.pathname === '/api/ai') takeColdStart();
-
   // Discovery owns public documents and its catalog, never product API routes.
   if (!url.pathname.startsWith('/api/') || url.pathname === '/api/ai') {
+    // Non-API requests also consume the isolate's first-request marker.
+    takeColdStart();
     const agent = handleAgentEdge(request);
     if (agent) return withSecurityHeaders(agent);
   }

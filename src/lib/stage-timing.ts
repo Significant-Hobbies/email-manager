@@ -45,37 +45,61 @@ export async function withStageTiming(
     status = response.status;
     return response;
   } finally {
-    // Telemetry setup, scheduling, and delivery must never affect the handler.
-    try {
-      const key = c.env.APP_HEALTH_INGEST_KEY?.trim();
-      const configuredRate = Number(c.env.APP_HEALTH_STAGE_SAMPLE_RATE ?? 0.1);
-      const rate = Number.isNaN(configuredRate) ? 0.1 : Math.max(0, Math.min(1, configuredRate));
-      if (key && Math.random() < rate) {
-        const colo = (c.req.raw as Request & { cf?: { colo?: unknown } }).cf?.colo;
-        const props = {
-          route,
-          status,
-          total_ms: milliseconds(performance.now() - start),
-          edge_cache: 'NONE',
-          inner_cache: 'NONE',
-          colo: typeof colo === 'string' && /^[A-Za-z0-9]{1,8}$/.test(colo) ? colo : 'unknown',
-          cold: c.get('stageCold') === 1 ? 1 : 0,
-          ...(stages.auth_ms === undefined ? {} : { auth_ms: milliseconds(stages.auth_ms) }),
-          ...(stages.gmail_ms === undefined ? {} : { gmail_ms: milliseconds(stages.gmail_ms) }),
-        };
-        c.executionCtx.waitUntil(
-          Promise.resolve()
-            .then(() =>
-              createPing({
-                key,
-                environment: c.env.APP_HEALTH_ENVIRONMENT?.trim() || 'production',
-              }).debug('api.stage_timing', { props })
-            )
-            .catch(() => {})
-        );
-      }
-    } catch {
-      // Includes unavailable execution contexts in local callers.
-    }
+    sendStageTiming(c, route, status, performance.now() - start, stages);
+  }
+}
+
+function sampleRate(value: string | undefined): number {
+  const configured = Number(value ?? 0.1);
+  return Number.isNaN(configured) ? 0.1 : Math.max(0, Math.min(1, configured));
+}
+
+function requestColo(request: Request): string {
+  const colo = (request as Request & { cf?: { colo?: unknown } }).cf?.colo;
+  return typeof colo === 'string' && /^[A-Za-z0-9]{1,8}$/.test(colo) ? colo : 'unknown';
+}
+
+function stageProps(stages: Partial<Record<Stage, number>>): Partial<Record<Stage, number>> {
+  const props: Partial<Record<Stage, number>> = {};
+  for (const stage of ['auth_ms', 'gmail_ms'] as const) {
+    const value = stages[stage];
+    if (value !== undefined) props[stage] = milliseconds(value);
+  }
+  return props;
+}
+
+/** Telemetry setup, scheduling, and delivery must never affect the handler. */
+function sendStageTiming(
+  c: TimingContext,
+  route: StageRoute,
+  status: number,
+  totalMs: number,
+  stages: Partial<Record<Stage, number>>
+): void {
+  try {
+    const key = c.env.APP_HEALTH_INGEST_KEY?.trim();
+    if (!key || Math.random() >= sampleRate(c.env.APP_HEALTH_STAGE_SAMPLE_RATE)) return;
+    const props = {
+      route,
+      status,
+      total_ms: milliseconds(totalMs),
+      edge_cache: 'NONE',
+      inner_cache: 'NONE',
+      colo: requestColo(c.req.raw),
+      cold: c.get('stageCold') === 1 ? 1 : 0,
+      ...stageProps(stages),
+    };
+    c.executionCtx.waitUntil(
+      Promise.resolve()
+        .then(() =>
+          createPing({
+            key,
+            environment: c.env.APP_HEALTH_ENVIRONMENT?.trim() || 'production',
+          }).debug('api.stage_timing', { props })
+        )
+        .catch(() => {})
+    );
+  } catch {
+    // Includes unavailable execution contexts in local callers.
   }
 }
