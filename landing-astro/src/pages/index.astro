@@ -7,13 +7,15 @@ import { workbenchContent } from '@saas-maker/templates/schema';
 import json from '../content/home.json';
 
 const content = workbenchContent.parse(json);
-// The vector preview scales with the template and embeds the self-hosted Outfit face.
+// The template spreads card attributes, but its content schema has no responsive-image fields.
 const pageContent = {
   ...content,
   hero: {
     ...content.hero,
     card: {
       ...content.hero.card!,
+      srcSet: '/images/search-stage-700.webp 700w, /images/search-stage-1050.webp 1050w, /images/search-stage.webp 1400w',
+      sizes: '(min-width: 768px) calc((min(100vw, 1280px) - clamp(40px, 8vw, 112px) - clamp(40px, 6vw, 96px)) / 2), calc(100vw - clamp(40px, 8vw, 112px))',
       loading: 'eager' as const,
       decoding: 'async' as const,
     },
