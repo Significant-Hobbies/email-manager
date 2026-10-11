@@ -54,7 +54,7 @@ function SampleSizeSelector({
             disabled={loading}
             className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition cursor-pointer ${
               sampleSize === opt.value
-                ? 'bg-[var(--accent)] text-white'
+                ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                 : 'text-[var(--text-muted)] hover:text-[var(--text)]'
             } disabled:opacity-60`}
           >
@@ -231,7 +231,7 @@ function SuggestionCard({
             <button
               type="button"
               onClick={() => onCopy(buildFilterRecipe(suggestion))}
-              className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[var(--accent-hover)] cursor-pointer"
+              className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)] cursor-pointer"
             >
               {copied === suggestion.id ? 'Copied' : 'Copy recipe'}
             </button>
@@ -297,7 +297,7 @@ function ExportSidebar(props: ExportSidebarProps) {
                 trackCoreAction('filter_installed');
               }}
               disabled={selectedSuggestions.length === 0}
-              className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-50 cursor-pointer"
+              className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)] disabled:opacity-50 cursor-pointer"
             >
               {copied === 'xml' ? 'Copied' : 'Copy XML'}
             </button>
@@ -363,7 +363,7 @@ function FilterBuilderContent(props: FilterBuilderContentProps) {
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--accent-hover)] cursor-pointer"
+          className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)] cursor-pointer"
         >
           Retry
         </button>

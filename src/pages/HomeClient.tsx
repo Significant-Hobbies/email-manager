@@ -198,7 +198,7 @@ function ErrorBanner({ error, onRetry }: { error: string; onRetry: () => void })
         <p className="text-sm text-[var(--text-muted)]">{error}</p>
         <button
           onClick={onRetry}
-          className="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--accent-hover)]"
+          className="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)]"
         >
           Try again
         </button>

@@ -65,7 +65,7 @@ function SentFilterBar({
             className={cn(
               'rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer',
               filter === item.id
-                ? 'bg-[var(--accent)] text-white'
+                ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                 : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)]'
             )}
           >

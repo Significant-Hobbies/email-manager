@@ -1,4 +1,5 @@
 ---
+import '@/styles/landing.css';
 import Base from '@saas-maker/templates/Base.astro';
 import { WorkbenchPage } from '@saas-maker/templates/workbench-page';
 import { baseProps } from '@saas-maker/templates/page';
@@ -6,15 +7,13 @@ import { workbenchContent } from '@saas-maker/templates/schema';
 import json from '../content/home.json';
 
 const content = workbenchContent.parse(json);
-// The template spreads card attributes, but its content schema has no responsive-image fields.
+// The vector preview scales with the template and embeds the self-hosted Outfit face.
 const pageContent = {
   ...content,
   hero: {
     ...content.hero,
     card: {
       ...content.hero.card!,
-      srcSet: '/images/search-stage-700.webp 700w, /images/search-stage-1050.webp 1050w, /images/search-stage.webp 1400w',
-      sizes: '(min-width: 768px) calc((min(100vw, 1280px) - clamp(40px, 8vw, 112px) - clamp(40px, 6vw, 96px)) / 2), calc(100vw - clamp(40px, 8vw, 112px))',
       loading: 'eager' as const,
       decoding: 'async' as const,
     },
@@ -25,8 +24,7 @@ const pageContent = {
 <Base {...baseProps(content)}>
   <Fragment slot="head">
     <meta name="application-name" content="Kinetic" />
-    <meta name="theme-color" content="#fbf8ff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1b22" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#080a12" />
 
     <meta name="keywords" content="Gmail triage, email filters, inbox cleanup, semantic email search, IndexedDB email" />
     <script is:inline>

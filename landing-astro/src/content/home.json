@@ -3,8 +3,8 @@
   "page": {
     "title": "Kinetic — Remember the email, not the exact words",
     "description": "A local-first Gmail workspace for semantic search, sender intelligence, and filter recipes. Your emails and embeddings stay in your browser.",
-    "theme": "paper",
-    "mode": "light",
+    "theme": "base",
+    "mode": "dark",
     "canonical": "https://mail.significanthobbies.com/",
     "og": {
       "image": "https://mail.significanthobbies.com/opengraph-image",
@@ -36,31 +36,31 @@
     },
     "assetBase": "/images/",
     "tokens": {
-      "--brand": "#5b43d6",
-      "--brand-soft": "#dcd3ff",
-      "--brand-ink": "#38259c",
-      "--accent-ink": "#5b43d6",
-      "--background": "#fbf9ff",
-      "--foreground": "#191625",
-      "--muted-foreground": "#625d70",
-      "--primary": "#191625",
-      "--primary-foreground": "#ffffff",
-      "--display-weight": "400",
-      "--radius": "1.75rem"
-    },
-    "fonts": {
-      "display": "newsreader",
-      "text": "figtree",
-      "accent": "newsreader",
-      "accentStyle": "italic"
+      "--brand": "var(--accent)",
+      "--brand-foreground": "var(--accent-fg)",
+      "--brand-soft": "var(--accent-soft)",
+      "--brand-ink": "var(--accent)",
+      "--accent-ink": "var(--accent)",
+      "--background": "var(--bg)",
+      "--foreground": "var(--text)",
+      "--muted-foreground": "var(--text-muted)",
+      "--primary": "var(--accent)",
+      "--primary-foreground": "var(--accent-fg)",
+      "--font-sans": "var(--sans)",
+      "--font-display": "var(--sans)",
+      "--font-text": "var(--sans)",
+      "--font-accent": "var(--sans)",
+      "--accent-style": "normal",
+      "--display-weight": "650",
+      "--radius": "0.75rem"
     },
     "surface": {
-      "backdrop": "gradient"
+      "backdrop": "none"
     }
   },
   "product": "Kinetic",
   "url": "https://mail.significanthobbies.com",
-  "mark": "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 22 22\"%3E%3Ctext x=\"3\" y=\"18\" font-family=\"sans-serif\" font-weight=\"700\" font-size=\"20\" fill=\"%235947a6\"%3EK%3C/text%3E%3C/svg%3E",
+  "mark": "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 22 22\"%3E%3Ctext x=\"3\" y=\"18\" font-family=\"sans-serif\" font-weight=\"700\" font-size=\"20\" fill=\"%238ca4ff\"%3EK%3C/text%3E%3C/svg%3E",
   "nav": [
     {
       "label": "product",
@@ -96,7 +96,7 @@
     "note": "Read-only Gmail · No server-side mailbox copy · In-browser ONNX",
     "layout": "split",
     "card": {
-      "src": "search-stage.webp",
+      "src": "search-stage.svg",
       "alt": "Illustrative Kinetic semantic search product preview with sample results for flight confirmation from last summer",
       "width": 1400,
       "height": 1189
