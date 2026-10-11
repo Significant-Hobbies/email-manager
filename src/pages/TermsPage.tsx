@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 export function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 text-sm leading-7">
-      <a href="/" className="text-xs text-gray-500 hover:underline">
+      <a href="/" className="text-xs text-[var(--text-muted)] hover:underline">
         ← Kinetic
       </a>
       <h1 className="mt-3 text-3xl font-bold tracking-tight">Terms of Service</h1>
-      <p className="mt-4 text-xs text-gray-500">Last updated: 2026-08-22.</p>
+      <p className="mt-4 text-xs text-[var(--text-muted)]">Last updated: 2026-08-22.</p>
 
       <p className="mt-8">
         These terms apply when you use Kinetic, the local-first Gmail workspace operated under the

@@ -92,7 +92,7 @@ export function WeeklyDigestView({ onOpenSender, onOpenThread, embedded = false 
         type="button"
         onClick={() => void generate()}
         disabled={loading || syncing}
-        className="shrink-0 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-60 cursor-pointer"
+        className="shrink-0 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60 cursor-pointer"
       >
         {loading || syncing ? 'Refreshing…' : 'Generate this week'}
       </button>
@@ -108,7 +108,7 @@ export function WeeklyDigestView({ onOpenSender, onOpenThread, embedded = false 
             <button
               type="button"
               onClick={() => void syncInbox()}
-              className="mt-3 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[var(--accent-hover)] cursor-pointer"
+              className="mt-3 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)] cursor-pointer"
             >
               Sync inbox
             </button>
@@ -126,7 +126,7 @@ export function WeeklyDigestView({ onOpenSender, onOpenThread, embedded = false 
             type="button"
             onClick={() => void generate()}
             disabled={syncing}
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-60 cursor-pointer"
+            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent-hover)] disabled:opacity-60 cursor-pointer"
           >
             Generate this week
           </button>

@@ -80,7 +80,7 @@ export function Subscriptions() {
           <p className="text-sm text-[var(--text-muted)]">{error}</p>
           <button
             onClick={loadSubscriptions}
-            className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
+            className="px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
           >
             Try again
           </button>
@@ -98,7 +98,7 @@ export function Subscriptions() {
           </p>
           <button
             onClick={handleSync}
-            className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
+            className="px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
           >
             Sync inbox
           </button>

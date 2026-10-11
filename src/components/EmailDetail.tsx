@@ -144,7 +144,7 @@ export function EmailDetail({ email, onBack, showBack = true }: Props) {
         <div className="email-reading-pane h-full overflow-hidden rounded-2xl border border-[var(--border)] shadow-[var(--shadow-soft)]">
           <iframe
             srcDoc={emailDocument}
-            className={cn('h-full w-full border-0 bg-white')}
+            className={cn('h-full w-full border-0 bg-[var(--bg-card)]')}
             sandbox="allow-popups allow-popups-to-escape-sandbox"
             title="Email body"
           />

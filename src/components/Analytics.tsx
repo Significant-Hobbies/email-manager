@@ -205,7 +205,7 @@ function AnalyticsHeader({
               onClick={() => setBucket(opt.value)}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                 bucket === opt.value
-                  ? 'bg-[var(--accent)] text-white'
+                  ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                   : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)]'
               }`}
             >
@@ -325,7 +325,7 @@ function AnalyticsError({ error, onRetry }: { error: string; onRetry: () => void
         <p className="text-sm text-[var(--text-muted)]">{error}</p>
         <button
           onClick={onRetry}
-          className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
+          className="px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
         >
           Try again
         </button>

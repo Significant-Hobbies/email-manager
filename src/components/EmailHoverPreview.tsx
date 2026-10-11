@@ -54,11 +54,11 @@ function PreviewPanel({
           {loading ? ' · Loading…' : null}
         </p>
       </div>
-      <div className="email-reading-pane max-h-56 overflow-hidden bg-white">
+      <div className="email-reading-pane max-h-56 overflow-hidden bg-[var(--bg-card)]">
         <iframe
           srcDoc={previewDoc}
           title={`Preview: ${preview.subject}`}
-          className="h-56 w-full border-0 bg-white"
+          className="h-56 w-full border-0 bg-[var(--bg-card)]"
           sandbox="allow-popups allow-popups-to-escape-sandbox"
         />
       </div>
