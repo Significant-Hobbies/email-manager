@@ -20,6 +20,7 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${testPort}`,
     trace: 'on-first-retry',
+    launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH },
   },
   webServer: {
     command: `pnpm build && wrangler dev --port ${testPort}`,
@@ -29,6 +30,12 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['iPhone 13'] } },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['iPhone 13'],
+        browserName: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? 'chromium' : 'webkit',
+      },
+    },
   ],
 });

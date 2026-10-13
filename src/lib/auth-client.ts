@@ -1,8 +1,5 @@
 'use client';
 
-import { createAuthClient } from 'better-auth/client';
-import { oneTapClient } from 'better-auth/client/plugins';
-
 export type Session = {
   user?: { id: string; email: string; name?: string; image?: string };
   session?: { id: string; expiresAt?: string };
@@ -21,35 +18,6 @@ export async function getSession(): Promise<Session> {
 }
 
 export type SignInResult = { ok: true } | { ok: false; message: string };
-
-export async function startGoogleOneTap(callbackPath = '/app'): Promise<void> {
-  const response = await fetch('/api/auth/client-config', {
-    credentials: 'same-origin',
-    cache: 'no-store',
-  });
-  if (!response.ok) return;
-
-  const { googleClientId } = (await response.json()) as { googleClientId: string | null };
-  if (!googleClientId) return;
-
-  const client = createAuthClient({
-    baseURL: window.location.origin,
-    plugins: [
-      oneTapClient({
-        clientId: googleClientId,
-        autoSelect: false,
-        cancelOnTapOutside: true,
-        promptOptions: { baseDelay: 500, maxAttempts: 1 },
-      }),
-    ],
-  });
-
-  await client.oneTap({
-    fetchOptions: {
-      onSuccess: () => window.location.replace(callbackPath),
-    },
-  });
-}
 
 export async function signIn(): Promise<SignInResult> {
   const res = await fetch('/api/auth/sign-in/social', {

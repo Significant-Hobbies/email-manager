@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './local-test';
 
 /**
  * Mobile-viewport smoke test for the public landing page.

@@ -196,7 +196,12 @@ test('isolated synthetic mailbox workflow', async () => {
   try {
     await server.listen();
     const origin = server.resolvedUrls.local[0];
-    browser = await chromium.launch({ channel: 'chrome', headless: true });
+    browser = await chromium.launch({
+      ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+        ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+        : { channel: 'chrome' }),
+      headless: true,
+    });
     const page = await browser.newPage();
     await page.route('**/*', async (route) => {
       const url = new URL(route.request().url());
