@@ -75,6 +75,8 @@ describe('Content Security Policy', () => {
 
     expect(source).toContain('y6bt70yq9x');
     expect(source).toContain('window.clarity("set","project_id","email-manager")');
-    expect(source).toMatch(/<div id="root" data-clarity-mask="true"><\/div>/u);
+    expect(source).toMatch(
+      /<div id="root" data-clarity-mask="true"><main class="session-loading" aria-busy="true">[\s\S]*?<\/main><\/div>/u
+    );
   });
 });

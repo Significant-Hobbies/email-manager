@@ -414,7 +414,7 @@ function FilterBuilderContent(props: FilterBuilderContentProps) {
 }
 
 export function GmailFilterBuilder({ embedded = false }: Props) {
-  const { ensureInboxCount, getInboxSlice } = useMailboxStore();
+  const { ensureInboxCount, getInboxSlice, total, inboxExhausted, syncing } = useMailboxStore();
   const [emails, setEmails] = useState<Email[]>([]);
   const [sampleSize, setSampleSize] = useState(500);
   const [loading, setLoading] = useState(true);
@@ -436,7 +436,7 @@ export function GmailFilterBuilder({ embedded = false }: Props) {
       setProgress('Loading from local inbox index…');
       try {
         const cached = getInboxSlice(target);
-        if (cached.length >= target) {
+        if (cached.length >= target || inboxExhausted) {
           setEmails(cached.slice(0, target));
           setLoading(false);
           setProgress('');
@@ -453,12 +453,12 @@ export function GmailFilterBuilder({ embedded = false }: Props) {
         setProgress('');
       }
     },
-    [ensureInboxCount, getInboxSlice]
+    [ensureInboxCount, getInboxSlice, inboxExhausted]
   );
 
   useEffect(() => {
     void fetchPatterns(sampleSize);
-  }, [fetchPatterns, sampleSize]);
+  }, [fetchPatterns, sampleSize, total]);
 
   useEffect(() => {
     setSelectedIds((current) => {
@@ -498,7 +498,7 @@ export function GmailFilterBuilder({ embedded = false }: Props) {
       suggestions={suggestions}
       selectedSuggestions={selectedSuggestions}
       sampleSize={sampleSize}
-      loading={loading}
+      loading={loading || (syncing && total === 0)}
       setSampleSize={setSampleSize}
       onRefresh={() => fetchPatterns(sampleSize)}
     />
@@ -506,7 +506,7 @@ export function GmailFilterBuilder({ embedded = false }: Props) {
 
   const content = (
     <FilterBuilderContent
-      loading={loading}
+      loading={loading || (syncing && total === 0)}
       progress={progress}
       error={error}
       suggestions={suggestions}

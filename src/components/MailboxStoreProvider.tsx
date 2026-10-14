@@ -61,6 +61,7 @@ export function useMailboxStore() {
 
 interface MailboxState {
   emails: StoredEmail[];
+  emailsRef: RefObject<StoredEmail[]>;
   total: number;
   indexed: number;
   pendingIndex: number;
@@ -81,6 +82,7 @@ interface MailboxState {
 
 function useMailboxState(accountId: string): MailboxState {
   const [emails, setEmails] = useState<StoredEmail[]>([]);
+  const emailsRef = useRef<StoredEmail[]>([]);
   const [total, setTotal] = useState(0);
   const [indexed, setIndexed] = useState(0);
   const [pendingIndex, setPendingIndex] = useState(0);
@@ -104,6 +106,7 @@ function useMailboxState(accountId: string): MailboxState {
       getInboxSyncMeta(accountId),
     ]);
     if (!mountedRef.current) return;
+    emailsRef.current = sorted;
     setEmails(sorted);
     setTotal(t);
     setIndexed(i);
@@ -116,6 +119,7 @@ function useMailboxState(accountId: string): MailboxState {
 
   return {
     emails,
+    emailsRef,
     total,
     indexed,
     pendingIndex,
@@ -219,7 +223,7 @@ function useSyncOperations(state: MailboxState, accountId: string) {
 }
 
 function useInboxQueries(
-  emails: StoredEmail[],
+  emails: RefObject<StoredEmail[]>,
   refresh: () => Promise<void>,
   runSync: (target: number, metadataOnly?: boolean) => Promise<void>,
   syncInbox: () => Promise<void>,
@@ -254,7 +258,7 @@ function useInboxQueries(
     [refresh, runSync, mountedRef, accountId]
   );
 
-  const getInboxSlice = useCallback((limit: number) => emails.slice(0, limit), [emails]);
+  const getInboxSlice = useCallback((limit: number) => emails.current.slice(0, limit), [emails]);
 
   return { ensureFreshInbox, ensureInboxCount, getInboxSlice };
 }
@@ -263,7 +267,7 @@ function useMailboxSync(accountId: string): MailboxStoreContextValue {
   const state = useMailboxState(accountId);
   const ops = useSyncOperations(state, accountId);
   const queries = useInboxQueries(
-    state.emails,
+    state.emailsRef,
     state.refresh,
     ops.runSync,
     ops.syncInbox,

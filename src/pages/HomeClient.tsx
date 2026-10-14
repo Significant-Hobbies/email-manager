@@ -14,6 +14,7 @@ import { Analytics } from '@/components/Analytics';
 import { SemanticSearch } from '@/components/SemanticSearch';
 import { InsightsView } from '@/components/InsightsView';
 import { WorkSurface } from '@/components/WorkSurface';
+import { SessionLoading } from '@/components/SessionLoading';
 import { MailboxStoreProvider, useMailboxStore } from '@/components/MailboxStoreProvider';
 import type { Email } from '@/lib/gmail';
 
@@ -56,13 +57,7 @@ export default function HomeClient() {
   const session = sessionData?.user ? sessionData : null;
   const status = isPending ? 'loading' : session ? 'authenticated' : 'unauthenticated';
 
-  if (status === 'loading') {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[var(--bg)]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-      </div>
-    );
-  }
+  if (status === 'loading') return <SessionLoading />;
 
   if (!session?.user) {
     return <SignInScreen />;
@@ -194,7 +189,7 @@ function useEmailFetch(
 function ErrorBanner({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center">
-      <div className="max-w-sm space-y-4 px-6 text-center">
+      <div role="alert" className="max-w-sm space-y-4 px-6 text-center">
         <p className="text-sm text-[var(--text-muted)]">{error}</p>
         <button
           onClick={onRetry}
@@ -374,7 +369,11 @@ function useInboxState(
   const inboxLoading = usesCachedInbox
     ? !mailbox.ready || (mailbox.syncing && mailbox.emails.length === 0)
     : fetchState.loading;
-  const inboxError = usesCachedInbox ? null : fetchState.error;
+  const inboxError = usesCachedInbox
+    ? mailbox.emails.length === 0 && mailbox.progress.startsWith('Error: ')
+      ? mailbox.progress.slice('Error: '.length)
+      : null
+    : fetchState.error;
 
   const loadMoreInbox = useCallback(() => {
     if (usesCachedInbox && !mailbox.inboxExhausted) {
@@ -393,7 +392,7 @@ function useInboxState(
       : undefined;
 
   const refreshMailboxView = useCallback(() => {
-    if (usesCachedInbox) void mailbox.syncInbox();
+    if (usesCachedInbox) void mailbox.syncInbox().catch(() => {});
     else fetchState.fetchEmails();
   }, [usesCachedInbox, mailbox, fetchState]);
 

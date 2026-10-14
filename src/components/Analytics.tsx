@@ -220,7 +220,9 @@ function AnalyticsHeader({
 }
 
 export function Analytics() {
-  const { ensureInboxCount, getInboxSlice, syncing, progress: storeProgress } = useMailboxStore();
+  const mailbox = useMailboxStore();
+  const { ensureInboxCount, getInboxSlice, syncing, total, inboxExhausted } = mailbox;
+  const storeProgress = mailbox.progress;
   const [stats, setStats] = useState<SenderStat[]>([]);
   const [sampleEmails, setSampleEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,7 +250,7 @@ export function Analytics() {
 
       try {
         const cached = getInboxSlice(target);
-        if (cached.length >= target) {
+        if (cached.length >= target || inboxExhausted) {
           computeStats(cached.slice(0, target));
           return;
         }
@@ -263,12 +265,12 @@ export function Analytics() {
         setProgress('');
       }
     },
-    [computeStats, ensureInboxCount, getInboxSlice]
+    [computeStats, ensureInboxCount, getInboxSlice, inboxExhausted]
   );
 
   useEffect(() => {
     void loadAnalytics(bucket);
-  }, [bucket, loadAnalytics]);
+  }, [bucket, loadAnalytics, total]);
 
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -290,7 +292,7 @@ export function Analytics() {
         statusLine={statusLine}
       />
 
-      {loading ? (
+      {loading || (syncing && total === 0) ? (
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
         </div>
