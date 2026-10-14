@@ -5,8 +5,17 @@ import type { Email } from '@/lib/gmail';
 import { useMailboxStore } from '@/components/MailboxStoreProvider';
 
 export function Subscriptions() {
-  const { accountId, total, subscriptionSenders, ready, syncing, refresh, syncInbox } =
-    useMailboxStore();
+  const {
+    accountId,
+    total,
+    subscriptionSenders,
+    ready,
+    syncing,
+    refresh,
+    syncInbox,
+    progress,
+    inboxExhausted,
+  } = useMailboxStore();
   const [error, setError] = useState<string | null>(null);
   const [unsubbing, setUnsubbing] = useState<Set<string>>(new Set());
   const [unsubbed, setUnsubbed] = useState<Set<string>>(new Set());
@@ -73,13 +82,14 @@ export function Subscriptions() {
     );
   }
 
-  if (error) {
+  const syncError = total === 0 && progress.startsWith('Error: ') ? progress.slice(7) : null;
+  if (error || syncError) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-sm px-6">
-          <p className="text-sm text-[var(--text-muted)]">{error}</p>
+        <div role="alert" className="text-center space-y-4 max-w-sm px-6">
+          <p className="text-sm text-[var(--text-muted)]">{error || syncError}</p>
           <button
-            onClick={loadSubscriptions}
+            onClick={syncError ? handleSync : loadSubscriptions}
             className="px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg hover:bg-[var(--accent-hover)] transition cursor-pointer text-sm font-medium"
           >
             Try again
@@ -89,7 +99,7 @@ export function Subscriptions() {
     );
   }
 
-  if (total === 0) {
+  if (total === 0 && !inboxExhausted) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4 max-w-sm px-6">

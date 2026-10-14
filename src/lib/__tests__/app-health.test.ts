@@ -117,7 +117,11 @@ describe('optional App Health endpoint telemetry', () => {
     const { response, pending } = await request(
       `/api/emails/${markers[0]}?q=${markers[4]}`,
       { headers: { cookie: markers[5], authorization: 'Bearer private-auth-header-marker' } },
-      { APP_HEALTH_INGEST_KEY: 'test-only-key', APP_HEALTH_ENVIRONMENT: 'test' }
+      {
+        APP_HEALTH_INGEST_KEY: 'test-only-key',
+        APP_HEALTH_ENVIRONMENT: 'test',
+        APP_HEALTH_STAGE_SAMPLE_RATE: '0',
+      }
     );
 
     expect(response.status).toBe(200);
