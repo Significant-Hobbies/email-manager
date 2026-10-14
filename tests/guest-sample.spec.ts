@@ -205,3 +205,31 @@ test('workspace import failure is retryable without losing the current view', as
   await expect(page.getByRole('heading', { name: 'Sample inbox · No OAuth' })).toBeVisible();
   await expect(page).toHaveURL(/\/app#analytics$/);
 });
+test('Subscriptions retries the failed account sync and distinguishes a successful empty mailbox', async ({
+  page,
+}) => {
+  await page.route('**/api/auth/get-session', (route) =>
+    route.fulfill({
+      json: {
+        user: { id: 'inbox-error-fixture', name: 'Synthetic User', email: 'audit@example.invalid' },
+      },
+    })
+  );
+  let fail = true;
+  let calls = 0;
+  await page.route('**/api/emails?*', (route) => {
+    calls++;
+    return fail
+      ? route.fulfill({ status: 503, json: { error: 'Synthetic mailbox unavailable' } })
+      : route.fulfill({ json: { emails: [], nextPageToken: null } });
+  });
+  await page.goto('/app#subscriptions');
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByText('No subscriptions found in your synced emails.')).toHaveCount(0);
+  const before = calls;
+  fail = false;
+  await page.getByRole('button', { name: 'Try again', exact: true }).click();
+  await expect(page.getByText('No subscriptions found in your synced emails.')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  expect(calls).toBeGreaterThan(before);
+});
