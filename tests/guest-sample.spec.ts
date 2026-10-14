@@ -1,5 +1,18 @@
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { test } from './local-test';
+
+async function matchSlowRead(page: Page) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.emulateNetworkConditions', {
+    offline: false,
+    latency: 150,
+    downloadThroughput: (1.6 * 1024 * 1024) / 8,
+    uploadThroughput: (750 * 1024) / 8,
+    connectionType: 'cellular4g',
+  });
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+}
 
 test('guest browses, searches and clears sample without OAuth, mailbox calls or storage', async ({
   page,
@@ -132,6 +145,7 @@ test('failed synthetic Inbox sync is an error and retries without fake emptiness
       ? route.fulfill({ status: 503, json: { error: 'Synthetic mailbox unavailable' } })
       : route.fulfill({ json: { emails: [], nextPageToken: null } });
   });
+  await matchSlowRead(page);
   await page.goto('/app');
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByText('No emails to show.')).toHaveCount(0);
@@ -223,6 +237,7 @@ test('Subscriptions retries the failed account sync and distinguishes a successf
       ? route.fulfill({ status: 503, json: { error: 'Synthetic mailbox unavailable' } })
       : route.fulfill({ json: { emails: [], nextPageToken: null } });
   });
+  await matchSlowRead(page);
   await page.goto('/app#subscriptions');
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByText('No subscriptions found in your synced emails.')).toHaveCount(0);
