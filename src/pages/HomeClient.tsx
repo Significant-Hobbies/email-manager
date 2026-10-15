@@ -14,7 +14,7 @@ import { Analytics } from '@/components/Analytics';
 import { SemanticSearch } from '@/components/SemanticSearch';
 import { InsightsView } from '@/components/InsightsView';
 import { WorkSurface } from '@/components/WorkSurface';
-import { SessionLoading } from '@/components/SessionLoading';
+import { SessionError, SessionLoading } from '@/components/SessionLoading';
 import { MailboxStoreProvider, useMailboxStore } from '@/components/MailboxStoreProvider';
 import type { Email } from '@/lib/gmail';
 
@@ -53,11 +53,12 @@ function getViewFromHash(): View {
 }
 
 export default function HomeClient() {
-  const { session: sessionData, loading: isPending } = useSession();
+  const { session: sessionData, loading: isPending, error, retry } = useSession();
   const session = sessionData?.user ? sessionData : null;
   const status = isPending ? 'loading' : session ? 'authenticated' : 'unauthenticated';
 
   if (status === 'loading') return <SessionLoading />;
+  if (error) return <SessionError onRetry={retry} />;
 
   if (!session?.user) {
     return <SignInScreen />;
