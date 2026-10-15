@@ -297,7 +297,9 @@ export function EmailList(props: Props) {
             {loading && emails.length === 0
               ? 'Loading…'
               : emails.length === 0
-                ? 'No messages loaded'
+                ? search
+                  ? 'No matching messages'
+                  : 'No messages loaded'
                 : `${emails.length} loaded`}
             {unreadCount > 0 ? <Badge variant="secondary">{unreadCount} unread</Badge> : null}
           </span>

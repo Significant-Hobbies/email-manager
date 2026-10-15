@@ -2,16 +2,10 @@ import { expect, type Page } from '@playwright/test';
 import { test } from './local-test';
 
 async function matchSlowRead(page: Page) {
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Network.enable');
-  await cdp.send('Network.emulateNetworkConditions', {
-    offline: false,
-    latency: 150,
-    downloadThroughput: (1.6 * 1024 * 1024) / 8,
-    uploadThroughput: (750 * 1024) / 8,
-    connectionType: 'cellular4g',
+  await page.route('**/api/emails?*', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await route.fallback();
   });
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 }
 
 test('guest browses, searches and clears sample without OAuth, mailbox calls or storage', async ({
@@ -248,13 +242,16 @@ test('Analytics and Insights finish a small exhausted cache without repeated loa
 
 test('workspace import failure is retryable without losing the current view', async ({ page }) => {
   let failed = true;
-  await page.route('**/assets/bootstrap-*.js', (route) =>
-    failed ? route.fulfill({ status: 503, body: 'Synthetic chunk failure' }) : route.continue()
-  );
+  let attempts = 0;
+  await page.route('**/assets/bootstrap-*.js', (route) => {
+    attempts++;
+    return failed ? route.abort('failed') : route.continue();
+  });
   await page.goto('/app#analytics');
   await expect(page.getByRole('alert')).toHaveText('Could not open the workspace.');
   failed = false;
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
+  await expect.poll(() => attempts).toBeGreaterThan(1);
   await expect(page.getByRole('heading', { name: 'Sample inbox · No OAuth' })).toBeVisible();
   await expect(page).toHaveURL(/\/app#analytics$/);
 });

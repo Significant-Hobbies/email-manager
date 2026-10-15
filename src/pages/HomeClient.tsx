@@ -3,7 +3,7 @@
 import { signOut } from '@/lib/auth-client';
 import { useSession } from '@/lib/use-session';
 import { trackActivated, trackCoreAction, trackReturned, trackSignup } from '@/lib/analytics';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { SignInScreen } from '@/components/SignInScreen';
 import { MobileMenuButton, Sidebar } from '@/components/Sidebar';
 import { EmailList } from '@/components/EmailList';
@@ -115,6 +115,30 @@ interface EmailFetchState {
   nextPageToken: string | null;
 }
 
+type EmailFetchResult =
+  | { status: 'ok'; emails: Email[]; nextPageToken: string | null }
+  | { status: 'error'; message: string };
+
+async function readEmailResponse(res: Response): Promise<EmailFetchResult> {
+  if (res.status === 401) {
+    return {
+      status: 'error',
+      message: 'Your mailbox session changed or expired. Reload to sign in again.',
+    };
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    console.error('Email fetch error:', res.status, body);
+    return { status: 'error', message: `Failed to load emails (${res.status})` };
+  }
+  const data = await res.json();
+  if (data.error) {
+    console.error('Email fetch error:', data.error);
+    return { status: 'error', message: data.error };
+  }
+  return { status: 'ok', emails: data.emails ?? [], nextPageToken: data.nextPageToken ?? null };
+}
+
 function useEmailFetch(
   view: View,
   search: string
@@ -126,13 +150,31 @@ function useEmailFetch(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
-  const fetchingRef = useRef(false);
   const fetchSeqRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const queryKeyRef = useRef(`${accountId}\0${view}\0${search}`);
+
+  useLayoutEffect(() => {
+    const queryKey = `${accountId}\0${view}\0${search}`;
+    if (queryKeyRef.current !== queryKey) {
+      queryKeyRef.current = queryKey;
+      setEmails([]);
+      setNextPageToken(null);
+      setLoading(true);
+      setError(null);
+    }
+    return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      fetchSeqRef.current++;
+    };
+  }, [accountId, view, search]);
 
   const fetchEmails = useCallback(
     async (pageToken?: string) => {
-      if (fetchingRef.current) return;
-      fetchingRef.current = true;
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
       const requestSeq = ++fetchSeqRef.current;
       setLoading(true);
       setError(null);
@@ -145,40 +187,29 @@ function useEmailFetch(
 
         const res = await fetch(`/api/emails?${params}`, {
           headers: { 'X-Mailbox-Account-Id': accountId },
+          signal: controller.signal,
         });
-        if (res.status === 401) {
-          setError('Your mailbox session changed or expired. Reload to sign in again.');
-          return;
-        }
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('Email fetch error:', res.status, text);
-          setError(`Failed to load emails (${res.status})`);
-          return;
-        }
-
-        const data = await res.json();
-        if (data.error) {
-          console.error('Email fetch error:', data.error);
-          setError(data.error);
-          return;
-        }
+        const result = await readEmailResponse(res);
         if (requestSeq !== fetchSeqRef.current) return;
-
+        if (result.status === 'error') {
+          setError(result.message);
+          return;
+        }
         if (pageToken) {
-          setEmails((prev) => [...prev, ...data.emails]);
+          setEmails((prev) => [...prev, ...result.emails]);
         } else {
-          setEmails(data.emails ?? []);
+          setEmails(result.emails);
         }
-        setNextPageToken(data.nextPageToken);
+        setNextPageToken(result.nextPageToken);
       } catch (err) {
-        if (requestSeq !== fetchSeqRef.current) return;
+        if (requestSeq !== fetchSeqRef.current || controller.signal.aborted) return;
         console.error('Email fetch exception:', err);
         setError('Failed to load emails');
       } finally {
-        if (requestSeq !== fetchSeqRef.current) return;
-        setLoading(false);
-        fetchingRef.current = false;
+        if (requestSeq === fetchSeqRef.current) {
+          setLoading(false);
+          abortRef.current = null;
+        }
       }
     },
     [view, search, accountId]
@@ -433,7 +464,7 @@ function AuthenticatedHome({
     if (view === 'sent') return;
     if (usesCachedInbox) return;
     if (LABEL_MAP[view]) fetchState.fetchEmails();
-  }, [view, search, usesCachedInbox, fetchState, setSelected]);
+  }, [view, search, usesCachedInbox, fetchState.fetchEmails, setSelected]);
 
   const openDigestContext = useCallback(
     (kind: 'sender' | 'thread', value: string, subject?: string) => {

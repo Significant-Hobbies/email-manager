@@ -11,7 +11,18 @@ void import('./bootstrap').catch(() => {
   message.textContent = 'Could not open the workspace.';
   const retry = document.createElement('button');
   retry.textContent = 'Try again';
-  retry.addEventListener('click', () => window.location.reload());
+  retry.addEventListener('click', async () => {
+    retry.disabled = true;
+    retry.textContent = 'Trying again…';
+    try {
+      // WebKit retains failed module URLs across reloads. A second module URL lets
+      // a transient chunk failure recover without losing the current view.
+      await import('./bootstrap?retry');
+    } catch {
+      retry.disabled = false;
+      retry.textContent = 'Try again';
+    }
+  });
   main.append(title, message, retry);
   root.replaceChildren(main);
 });
