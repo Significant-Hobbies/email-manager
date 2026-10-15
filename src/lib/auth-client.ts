@@ -7,14 +7,11 @@ export type Session = {
 } | null;
 
 export async function getSession(): Promise<Session> {
-  try {
-    const res = await fetch('/api/auth/get-session', { credentials: 'include' });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.user ? data : null;
-  } catch {
-    return null;
-  }
+  const res = await fetch('/api/auth/get-session', { credentials: 'include' });
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error('Session check failed');
+  const data = await res.json();
+  return data?.user ? data : null;
 }
 
 export type SignInResult = { ok: true } | { ok: false; message: string };

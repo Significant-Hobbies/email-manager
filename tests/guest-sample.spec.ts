@@ -127,6 +127,45 @@ test('synthetic signed-in session uses its account cache and never seeds guest m
   ).toEqual(['email-search-account:synthetic-account']);
 });
 
+test('failed session check stays out of guest mode and retries the selected view', async ({
+  page,
+}, testInfo) => {
+  let unavailable = true;
+  await page.route('**/api/auth/get-session', (route) =>
+    unavailable
+      ? route.fulfill({ status: 503, json: { error: 'Synthetic session outage' } })
+      : route.fulfill({
+          json: {
+            user: {
+              id: 'session-recovery-fixture',
+              name: 'Synthetic User',
+              email: 'audit@example.invalid',
+            },
+          },
+        })
+  );
+  await page.route('**/api/emails?*', (route) =>
+    route.fulfill({ json: { emails: [], nextPageToken: null } })
+  );
+
+  for (const width of [390, 768, 1440]) {
+    unavailable = true;
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`/app?recovery-width=${width}#analytics`);
+    await expect(page.getByRole('alert')).toContainText('Could not check your session');
+    await expect(page.getByRole('heading', { name: 'Sample inbox · No OAuth' })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
+      false
+    );
+    await page.screenshot({ path: testInfo.outputPath(`session-error-${width}.png`) });
+    unavailable = false;
+    await page.getByRole('button', { name: 'Try again' }).press('Enter');
+    await expect(page.getByRole('heading', { name: 'Analytics', exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/#analytics$/);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+  }
+});
+
 test('failed synthetic Inbox sync is an error and retries without fake emptiness', async ({
   page,
 }) => {
